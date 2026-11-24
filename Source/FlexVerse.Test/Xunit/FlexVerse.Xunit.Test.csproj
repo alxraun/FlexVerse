@@ -1,0 +1,116 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!--
+      FlexVerse (net48) must be built WITHOUT the DEBUG define, otherwise
+      StaticBehavior's Target setter calls FlexVerse.Debug.Info which executes
+      UnityEngine reference-assembly code (forbidden / throws under .NET 10).
+      Run with: dotnet test Tests/FlexVerse.Test -c Release
+    -->
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <!--
+      Krafs.Rimworld.Ref is a net472 reference-assembly package consumed by
+      this net10.0 project by design (inert shims provide runtime); the
+      net48 FlexVerse ProjectReference resolves through the framework-compat
+      shim too. The NU1701/NU1702 compat warnings are expected, not defects.
+    -->
+    <NoWarn>$(NoWarn);NU1701;NU1702</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <!--
+      Compile-time identity for UnityEngine/Verse types used by the runtime
+      tests. Runtime assets are excluded: the inert Shims/* assemblies below
+      provide the executable implementations (FlexVerse.dll is compiled
+      against Krafs reference assemblies whose method bodies throw).
+    -->
+    <PackageReference
+      Include="Krafs.Rimworld.Ref"
+      Version="1.6.4871"
+      PrivateAssets="all"
+      ExcludeAssets="runtime"
+    />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shims build as standalone runtime-only assemblies; keep their sources out of this compilation. -->
+    <Compile Remove="Shims/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      Runtime-only: not referenced for compilation (compile identity comes
+      from Krafs.Rimworld.Ref). Built separately and copied next to the test
+      assembly so the FlexVerse (net48) assembly references to
+      UnityEngine.CoreModule / Assembly-CSharp resolve to inert shims instead
+      of Krafs reference assemblies (whose method bodies throw).
+    -->
+    <ProjectReference Include="Shims/UnityShim/UnityShim.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="Shims/VerseShim/VerseShim.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="Shims/ImGuShim/ImGuShim.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference
+      Include="Shims/TextRenderingShim/TextRenderingShim.csproj"
+      ReferenceOutputAssembly="false"
+    />
+  </ItemGroup>
+
+  <Target Name="CopyUnityShims" AfterTargets="Build">
+    <Copy
+      SourceFiles="Shims/TextRenderingShim/bin/$(Configuration)/net10.0/UnityEngine.TextRenderingModule.dll"
+      DestinationFolder="$(OutDir)"
+    />
+    <Copy
+      SourceFiles="Shims/UnityShim/bin/$(Configuration)/net10.0/UnityEngine.CoreModule.dll"
+      DestinationFolder="$(OutDir)"
+    />
+    <Copy
+      SourceFiles="Shims/VerseShim/bin/$(Configuration)/net10.0/Assembly-CSharp.dll"
+      DestinationFolder="$(OutDir)"
+    />
+    <Copy
+      SourceFiles="Shims/ImGuShim/bin/$(Configuration)/net10.0/UnityEngine.IMGUIModule.dll"
+      DestinationFolder="$(OutDir)"
+    />
+  </Target>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../Source/FlexVerse/FlexVerse.csproj" />
+    <ProjectReference Include="../../../Source/FlexVerse.SourceGenerators/FlexVerse.SourceGenerators.csproj" />
+    <ProjectReference Include="../../../Source/FlexVerse.PropertyWeaver.Fody/FlexVerse.PropertyWeaver.Fody.csproj" />
+  </ItemGroup>
+
+  <!--
+    Tools area: FlexTools.csproj cannot be referenced directly here.
+    Its Release configuration requires a local "FlexVerse" NuGet package
+    (.build/nupkgs is empty) and its Debug configuration imports the mod
+    deployment targets. We therefore compile the three Unity-free model
+    sources directly from Source/FlexTools verbatim - the exact same
+    code ships in the tools assembly - and only ever exercise members whose
+    code paths never touch RimWorld/Verse/UnityEngine types.
+  -->
+  <ItemGroup>
+    <Compile
+      Include="../../../Source/FlexTools/WidgetInspector/Models/DebugBehaviorNode.cs"
+      Link="WidgetInspector/DebugBehaviorNode.cs"
+    />
+    <Compile
+      Include="../../../Source/FlexTools/WidgetInspector/Models/DebugPropertyNode.cs"
+      Link="WidgetInspector/DebugPropertyNode.cs"
+    />
+    <Compile
+      Include="../../../Source/FlexTools/WidgetInspector/Models/HierarchyItemState.cs"
+      Link="WidgetInspector/HierarchyItemState.cs"
+    />
+  </ItemGroup>
+</Project>

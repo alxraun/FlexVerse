@@ -1,0 +1,24 @@
+// parents: @.frostline/graph/m-test-runtime-shims.xml
+namespace UnityEngine
+{
+    public enum FontStyle
+    {
+        Normal = 0,
+        Bold = 1,
+        Italic = 2,
+        BoldAndItalic = 3,
+    }
+
+    public enum TextAnchor
+    {
+        UpperLeft = 0,
+        UpperCenter = 1,
+        UpperRight = 2,
+        MiddleLeft = 3,
+        MiddleCenter = 4,
+        MiddleRight = 5,
+        LowerLeft = 6,
+        LowerCenter = 7,
+        LowerRight = 8,
+    }
+}

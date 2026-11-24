@@ -1,0 +1,35 @@
+<!-- parents: @.frostline/graph/ss-runtime-services.xml -->
+<M-BEHAVIOR-UPDATER>
+  <Purpose>Global tick loop: drive subscribed behaviors each frame through a weak-reference list, with throttling support for time-sliced work.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>BehaviorUpdater: subscription list of weak references, per-frame tick.</SCP-IN-001>
+    <SCP-IN-002>Throttler: rate limiting helper.</SCP-IN-001>
+    <SCP-OUT-001>Ownership accounting — owned by M-BEHAVIOR-REGISTRY.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>A behavior whose owner was collected stops being ticked without manual unregistration per S-RUNTIME-PLATFORM.REQ-002.</REQ-001>
+    <REQ-002>Tick order follows subscription order and is stable frame to frame per SS-RUNTIME-SERVICES.REQ-002.</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>deltaTime: float — frame delta from the root.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>drives Behavior.Update on every live subscribed behavior.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>May drop dead weak references from the subscription list during tick.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `BehaviorUpdater.Tick(deltaTime)` -> `WeakReference` -> `Behavior.Update(deltaTime)`
+* `Throttler(targetFrameRate)` -> `Throttler.{Tick|ShouldUpdate|DidUpdate|ForceNextUpdate}`
+* `BehaviorUpdater` <= `FlexVerseRoot.Update`
+]]>
+  </Codemap>
+</M-BEHAVIOR-UPDATER>

@@ -1,0 +1,28 @@
+<!-- parents: @.frostline/graph/s-widget-debugger.xml -->
+<M-DBG-CORE>
+  <Purpose>WidgetInspector tool lifecycle, context selection, snapshot refresh and the inspector window.</Purpose>
+  <Scope>
+    <SCP-IN-001>Tool initialization, shutdown, global F12 toggle, selected engine/widget and InspectorSettings.</SCP-IN-001>
+    <SCP-IN-002>InspectorWindow hosts InspectorApp through FVUI.</SCP-IN-002>
+    <SCP-OUT-001>Inspection, property observation, presentation and drawing belong to sibling M-DBG modules.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Initialize enables observation; Shutdown closes the window, releases its FVUI context, removes patches and disposes subscriptions.</REQ-001>
+    <REQ-002>F12 opens or closes the inspector even when no FlexVerse screen is rendering.</REQ-002>
+    <REQ-003>Context discovery uses EngineRegistry.List; empty and isolated engines are excluded. Removed contexts and widgets clear stale selection.</REQ-003>
+    <REQ-004>The inspector receives immutable display snapshots as Props. Only its own UI reconciles; target instances are never reconciled or dirtied by inspection.</REQ-004>
+    <REQ-005>Closing the window releases its engine. Reopening creates a new UI instance and current snapshot.</REQ-005>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>ToolManager lifecycle, engine ProcessUI completion, window contents and hotkey events.</IN-001></Inputs>
+    <Outputs><OUT-001>InspectorApp definitions and optional overlays for live target engines.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Registers an engine observation postfix and a game hotkey prefix, and opens/closes a Verse window.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap><![CDATA[
+* `WidgetInspector.Initialize` -> `WidgetInspector` + `Harmony.PatchCategory`
+* `WidgetInspector.CreateApp` -> `EngineRegistry.List` + `WidgetInspector.Inspect` -> `InspectorApp`
+* `InspectorWindow.DoWindowContents` -> `FVUI.Render`
+* `InspectorWindow.PostClose` -> `FVUI.Release`
+* `WidgetInspector.Shutdown` -> `Harmony.UnpatchCategory` + `WidgetInspector.Dispose` + `ChangeTracker.Clear`
+]]></Codemap>
+</M-DBG-CORE>

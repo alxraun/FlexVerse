@@ -1,0 +1,30 @@
+<!-- parents: @.frostline/graph/s-widget-debugger.xml -->
+<M-DBG-INSPECT>
+  <Purpose>Capture the live engine instance tree and its reactive properties into immutable display snapshots.</Purpose>
+  <Scope>
+    <SCP-IN-001>WidgetInspector captures live children, properties and behavior parameters; DebugNode retains a weak target handle.</SCP-IN-001>
+    <SCP-IN-002>Generated property refs and WatchRef subscriptions supply widget update heat.</SCP-IN-002>
+    <SCP-OUT-001>Rendering and UI state belong to M-DBG-UI and M-DBG-OVERLAY.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>The inspection surface is the FVPAttribute-annotated property family of any visibility: Prop, State, InheritedContext and baseline FVP. Unannotated members and fields are excluded.</REQ-001>
+    <REQ-002>Property metadata is cached by concrete type. Reads and subscriptions use generated IPropertyRef slots, preserving the property's category and name.</REQ-002>
+    <REQ-003>Traversal uses WidgetEngine.GetRoot and GetChildren, never the declarative Children property. Stable IDs are assigned by object identity and survive snapshot refreshes.</REQ-003>
+    <REQ-004>DebugBehaviorNode exposes public parameters and an optional RefCount; null denotes a reference count unavailable through the framework API.</REQ-004>
+    <REQ-005>DebugPropertyNode contains the property name, category, current value display and optional behavior snapshot; capture never mutates earlier snapshots.</REQ-005>
+    <REQ-006>Observation follows IPropertyRef.Changed and WatchRef.OnUpdate across behavior replacement. Unmount and Dispose remove subscriptions; snapshots never retain live widgets strongly.</REQ-006>
+    <REQ-007>Failed parameter getters are logged and displayed as unavailable without aborting other parameter reads.</REQ-007>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>WidgetEngine and ChangeTracker.</IN-001></Inputs>
+    <Outputs><OUT-001>DebugNode tree with weak targets, stable IDs and property/behavior snapshots.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Subscribes to property events and removes those subscriptions on unmount or disposal.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap><![CDATA[
+* `WidgetInspector.Inspect` -> `WidgetEngine.GetRoot` + `WidgetEngine.GetChildren` -> `DebugNode`
+* `WidgetInspector.Observe` -> `IPropertyRef.Changed` + `WatchRef.OnUpdate` -> `ChangeTracker.RegisterChange`
+* `WidgetInspector.Dispose` -> `WatchRef.OnUpdate` + `IPropertyRef.Changed`
+* `DebugNode` -> `DebugPropertyNode` -> `DebugBehaviorNode`
+* `DebugNode.GetTarget` -> `WeakReference.TryGetTarget`
+]]></Codemap>
+</M-DBG-INSPECT>

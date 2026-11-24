@@ -1,0 +1,38 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-FLEX-EVENTS>
+  <Purpose>Existing native IMGUI event router: transform-aware target selection, pointer and keyboard bubbling, hover path changes and StopPropagation.</Purpose>
+  <Scope>
+    <SCP-IN-001>FlexEvent model, WidgetHitTester and FlexEventDispatcher.ProcessEvents.</SCP-IN-001>
+    <SCP-IN-002>Pointer MouseDown/MouseUp/MouseDrag/ScrollWheel delivery and synthesized hover/move.</SCP-IN-002>
+    <SCP-IN-003>Focused keyboard target via FocusManager and target-first ancestor bubbling.</SCP-IN-003>
+    <SCP-OUT-001>Geometry construction is owned by M-WIDGET-GEOMETRY; coordinate and clip queries are owned by M-TRANSFORM-SERVICE and M-CLIP-SERVICE.</SCP-OUT-001>
+    <SCP-OUT-002>Native control editing or Button.OnClick's action Prop, independently owned by widgets.</SCP-OUT-002>
+  </Scope>
+  <Requirements>
+    <REQ-001>WidgetHitTester traverses published paint order in reverse, using shared transforms and clips; dispatch bubbles target-first until StopPropagation.</REQ-001>
+    <REQ-002>Hover changes emit OnMouseEnter and OnMouseLeave along the differing ancestor paths.</REQ-002>
+    <REQ-003>Keyboard events dispatch only when FocusManager resolves the focused Widget of the current engine.</REQ-003>
+    <REQ-004>StopPropagation halts bubbling and marks the native event used; the existing native button and FlexEvent systems remain independent.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>Current UnityEngine.Event and WidgetHitTester result.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>FlexEvent delivered to matching Widget mouse, wheel, hover and keyboard hooks.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Stops native event propagation through Event.Use on handled events.</EFF-001>
+    </SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `FlexEvent(nativeEvent, target)` -> `FlexEvent.{NativeEvent|Target|CurrentTarget|Type|MousePosition|KeyCode|Character|Modifiers|ScrollDelta|Button}`
+* `FlexEvent.StopPropagation` => `FlexEvent.IsPropagationStopped`
+* `FlexEventDispatcher.ProcessEvents` -> `WidgetHitTester.HitTest` -> `FlexEventDispatcher.DispatchNativeMouseEvents` + `FlexEventDispatcher.DispatchNativeKeyboardEvents`
+* `FlexEventDispatcher.ProcessHoverEvents` -> `Widget.OnMouseEnter` + `Widget.OnMouseLeave`
+* `FlexEventDispatcher.DispatchNativeKeyboardEvents` -> `FocusManager.GetFocusedWidget` -> `Widget.OnKeyDown` | `Widget.OnKeyUp`
+* `FlexEventDispatcher.BubbleEvent` -> `WidgetTree.TraverseAncestors`
+]]>
+  </Codemap>
+</M-FLEX-EVENTS>

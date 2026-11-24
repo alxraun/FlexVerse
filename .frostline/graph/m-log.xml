@@ -1,0 +1,47 @@
+<!-- parents: @.frostline/graph/p-flexverse.xml -->
+<M-LOG>
+  <Purpose>Cross-system logging seam of the framework: the single FlexVerse.Log API with a grep-stable module-marker contract shared by all systems, devtools and the verification evidence pipeline.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Level API: Info, Debug, Warning, Error with module marker as first argument and a semantic event token plus key/value variables.</SCP-IN-001>
+    <SCP-IN-002>Module origin prefix and Unity/no-Unity sink selection.</SCP-IN-001>
+    <SCP-IN-003>Global mode gate Log.Enabled: default-on switch owned by the entry point of the running mode.</SCP-IN-002>
+    <SCP-OUT-001>Log suppression while enabled — no throttling, no deduplication, no game log caps.</SCP-OUT-001>
+    <SCP-OUT-002>Copying the seam into other mods — the contract exists exactly once.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>While Log.Enabled is true, a missing line means the event did not happen: the log is never throttled or deduplicated.</PRIN-001>
+    <PRIN-002>Debug is hot-path verbosity by design; Info marks milestones only.</PRIN-002>
+    <PRIN-003>The log targets automated verification and the agent evidence pipeline; interactive test mods opt out via the mode gate.</PRIN-003>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Every call carries a module marker: Log.Info("M-WIDGET-TREE", ...) — written manually, never derived centrally.</REQ-001>
+    <REQ-002>Log lines are grep-stable and frostline-schema shaped: [frame][FV][M-module][Class:Method][LEVEL] event VARIABLES: {k=v, ...} — uppercase level, dot-notated event token, mandatory VARIABLES snapshot ({} when empty), no free-text prose.</REQ-002>
+    <REQ-003>The seam works without Unity present (tests) — Unity is behind the sink, never required.</REQ-003>
+    <REQ-004>Log.Enabled defaults to true; when false, Emit discards messages before origin resolution and the sink. Only mode entry points toggle it (automated runs keep it on).</REQ-004>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>module: string — M-* marker of the owning module; event: dot-notated token; vars: key/value pairs.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>log line via the default sink (UnityEngine.Debug.Log when Unity is present); nothing when Log.Enabled is false.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Writes to the engine log (Player.log in-game).</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `Log.{Info|Debug|Warning|Error}(module, event, vars)` -> `Log.Emit` + `Log.FormatVars` => `Log.Enabled` -> `Log.UnityWrite`
+* `Log.Origin(module)` => `[FV][M-module][Class:Method][LEVEL] event VARIABLES: {k=v}`
+* `Log.HasUnityRuntime` => sink selection
+* `Log` <= `{Info|Debug|Warning|Error}` call sites : all modules
+* `ExplorerMod` => `Log.Enabled = false` : interactive mode opt-out
+* `evidence._marker_matches` -> `[FV][M-` : P-FLEXVERSE-TOOLING marker contract]]>
+  </Codemap>
+</M-LOG>

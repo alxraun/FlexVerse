@@ -1,0 +1,11 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <PropertyGroup>
+    <Version>0.1.0</Version>
+    <Authors>alx</Authors>
+    <Company>alx</Company>
+    <Copyright>Copyright © 2025 alx</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl></RepositoryUrl>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,31 @@
+<!-- parents: @.frostline/graph/s-verification.xml -->
+<M-PICKLE>
+  <Purpose>The in-game pickle suite: feature scenarios plus step bindings and probe widgets deployed into the test mod, executed inside the game container by the pickle harness (M-OP-TEST).</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Source/FlexVerse.Test/Pickle: Features/ (.feature files, deployed by the csproj glob), Behaviors/ and the flat step/fixture files, Diagnostics/ as the free-form agent sandbox.</SCP-IN-001>
+    <SCP-IN-002>Step classes bound by the compiled FlexVerse.Test.Pickle.dll; grep-marker scenario evidence written to Player.log.</SCP-IN-002>
+    <SCP-OUT-001>Verdict derivation from markers — owned by M-RUNS (S-VERIFICATION.REQ-001).</SCP-OUT-001>
+    <SCP-OUT-002>Container/staging mechanics — owned by M-GAME.</SCP-OUT-002>
+    <SCP-OUT-003>Manual/visual inspection — owned by M-EXPLORER.</SCP-OUT-003>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Features always live in Features/ (the csproj deploys via the Features/**/*.feature glob); steps and fixtures stay flat unless a topic clearly coheres into a directory.</REQ-001>
+    <REQ-002>Feature selection is by file name (DEFAULT_FILTER in Scripts/_lib.py, runs section), so file location never changes which features run.</REQ-002>
+    <REQ-003>All Pickle code shares the namespace FlexVerse.Test.Pickle; steps bind by assembly, not namespace.</REQ-003>
+    <REQ-004>Scenarios assert via grep-stable markers: scenario:BEGIN/END and passed in Nms: name (S-VERIFICATION.PRIN-002).</REQ-004>
+    <REQ-005>Diagnostics/ is the agent's sandbox: diagnostic scenarios are created there freely, extend the flat list by default, and are pruned when they outlive their purpose.</REQ-005>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `Features/*.feature` : name-selected (runs.DEFAULT_FILTER) => csproj glob deploy
+* `Behaviors/TweenBehaviorSteps` -> tween.feature
+* `FlexEventSteps` + `EventProbe` widgets -> flexevent.feature
+* `FocusSteps` + `FocusProbe` fixtures -> focus.feature
+* `Diagnostics/FlexVerseSmokeSteps` + `SmokeWidget` -> flexverse-smoke.feature
+* `FlexVerse.Test.Pickle` : single ns, dll-bound steps
+* scenario:BEGIN/END + `passed in Nms` => Player.log markers => M-RUNS verdict]]>
+  </Codemap>
+</M-PICKLE>

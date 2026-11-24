@@ -1,0 +1,28 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-HORIZONTAL-SLIDER-WIDGET>
+  <Purpose>Native one-axis controlled scalar slider reporting enabled user proposals within its supplied bounds.</Purpose>
+  <Scope>
+    <SCP-IN-001>HorizontalSlider Value, MinValue, MaxValue, OnValueChange, Disabled and Tooltip.</SCP-IN-001>
+    <SCP-IN-002>Native Widgets.HorizontalSlider drawing and default/explicit Flexbox measurement.</SCP-IN-002>
+    <SCP-OUT-001>Two-axis drag semantics — owned by M-AREA-SLIDER-WIDGET.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Widgets.HorizontalSlider receives externally owned Value and min/max bounds; it returns a proposed value within native control behavior.</REQ-001>
+    <REQ-002>OnValueChange is raised only for enabled proposals differing from Value.Value by more than Mathf.Approximately; the slider does not assign Value itself.</REQ-002>
+    <REQ-003>Disabled temporarily turns off native GUI interaction and absorbs clicks while restoring previous GUI.enabled and GUI.color after drawing.</REQ-003>
+    <REQ-004>MeasureFunc uses preferred intrinsic width at least 80 and height 14, respecting width/height measure modes and explicit point dimensions.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Value: float, MinValue, MaxValue and OnValueChange callback.</IN-001></Inputs>
+    <Outputs><OUT-001>Proposed scalar value via OnValueChange.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Native slider drawing and callback invocation for changed enabled input.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `HorizontalSlider` : `Widget`
+* `HorizontalSlider.{Value|MinValue|MaxValue|OnValueChange|Disabled|Tooltip}`
+* `HorizontalSlider.MeasureFunc` -> `Widget.Width` + `Widget.Height`
+* `HorizontalSlider.OnGUI` -> `Widgets.HorizontalSlider` -> `HorizontalSlider.ProposeValue` => `HorizontalSlider.OnValueChange`
+]]>
+  </Codemap>
+</M-HORIZONTAL-SLIDER-WIDGET>

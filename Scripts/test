@@ -1,0 +1,132 @@
+#!/usr/bin/env -S uv run --script
+
+# parents: @.frostline/graph/m-op-test.xml
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
+"""Run a test harness: one in isolation, or all (the gate).
+
+Usage:
+  uv run Scripts/test [xunit|pickle|all] [--profile local|ci] [--with MOD]... [SUBJECT...]
+
+Harnesses (selection by name, default: xunit):
+  xunit   offline scenarios with asserts (dotnet test, Release).
+          SUBJECT = native dotnet test filter (class, namespace, wildcard):
+            test xunit WidgetEngineTests
+            test xunit "FlexVerse.Widgets.*"
+  pickle  in-game scenarios with asserts (container run, 0/1/2 evidence).
+          SUBJECT = .feature file(s) (default: the mods.json-derived set):
+            test pickle tween.feature
+  all     the gate: xunit first, then the pickle run. A feature SUBJECT
+          narrows the pickle leg only. This is what CI runs.
+
+--profile local|ci and repeatable --with MOD apply to the game legs
+(pickle, all) only.
+
+Exit: 0 pass/compatible, 1 fail/incompatible, 2 harness did not run
+(S-VERIFICATION.REQ-001).
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _lib import (  # noqa: E402
+    Pipeline, RunSpec, StageFailure, ToolingError, console, die,
+    evidence, game_pipeline, make_product, parse_profile, require_value,
+    run_container, source_fingerprint, xunit_run,
+)
+
+#: The harness axis: which test kind runs. Selection by name from a closed
+#: registry (P-FLEXVERSE-TOOLING.PRIN-006); unknown names fail loudly.
+HARNESS = ("xunit", "pickle", "all")
+
+
+def parse_args(argv: list[str]) -> tuple[str, RunSpec]:
+    args = list(argv)
+    harness = "xunit"
+    explicit = False
+    if args and args[0] in HARNESS:
+        harness = args.pop(0)
+        explicit = True
+    spec = RunSpec()
+    while args:
+        a = args.pop(0)
+        if a == "--profile":
+            if harness == "xunit":
+                die(f"--profile does not apply to harness '{harness}'")
+            spec = RunSpec(profile=parse_profile(require_value(args, a)),
+                           with_mods=spec.with_mods, seed=spec.seed,
+                           dotnet_filter=spec.dotnet_filter,
+                           feature=spec.feature)
+        elif a == "--with":
+            if harness == "xunit":
+                die(f"--with does not apply to harness '{harness}'")
+            spec = RunSpec(profile=spec.profile,
+                           with_mods=(*spec.with_mods,
+                                      require_value(args, a)),
+                           seed=spec.seed,
+                           dotnet_filter=spec.dotnet_filter,
+                           feature=spec.feature)
+        elif a.startswith("-"):
+            die(f"unknown flag '{a}' (see --help)")
+        else:
+            if not explicit:
+                die(f"positional subject '{a}' requires an explicit harness: "
+                    f"test {'|'.join(HARNESS)} ...")
+            if harness == "xunit":
+                spec = RunSpec(profile=spec.profile, with_mods=spec.with_mods,
+                               seed=spec.seed, dotnet_filter=a,
+                               feature=spec.feature)
+            else:
+                spec = RunSpec(profile=spec.profile, with_mods=spec.with_mods,
+                               seed=spec.seed, dotnet_filter=spec.dotnet_filter,
+                               feature=a)
+    return harness, spec
+
+
+def xunit_leg(spec: RunSpec) -> int:
+    """Offline harness: Debug build (cached resume), then dotnet test.
+
+    The verdict is the dotnet exit code itself (M-OP-TEST.REQ-003)."""
+    Pipeline().run("build_product", make_product,
+                   fingerprint=source_fingerprint,
+                   description="dotnet build product + test mods (Debug)")
+    rc = xunit_run(spec.dotnet_filter, check=False)
+    console(f"xunit exited with code {rc}")
+    return 0 if rc == 0 else 1
+
+
+def pickle_leg(spec: RunSpec) -> int:
+    """In-game harness: the shared game pipeline + verdict plane."""
+    p = game_pipeline(spec)
+    p.run("run_container", lambda cached: run_container(p, spec),
+          description="containerized RimWorld run")
+    return p.run("evidence", lambda cached: evidence(p, spec),
+                 description="report.json + verdict + exit code")
+
+
+def main() -> int:
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(__doc__.strip(), flush=True)
+        return 0
+    harness, spec = parse_args(sys.argv[1:])
+    try:
+        if harness == "xunit":
+            return xunit_leg(spec)
+        if harness == "all":
+            # gate: offline first (cheap, no game), game leg only on green
+            if (rc := xunit_leg(spec)) != 0:
+                return rc
+        return pickle_leg(spec)
+    except StageFailure as exc:
+        die(str(exc), exc.code)
+    except ToolingError as exc:
+        die(str(exc), exc.code)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

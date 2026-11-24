@@ -1,0 +1,25 @@
+<!-- parents: @.frostline/graph/p-flexverse-tooling.xml -->
+<M-DOTNET>
+  <Purpose>The dotnet domain (the dotnet section of Scripts/_lib.py): the development build (all projects in Debug) and the offline xunit harness. MSBuild remains the single build mechanism; this section only invokes it as a command.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Scripts/_lib.py (dotnet section): ProjectSet/PROJECTS (the built surface), make_product, xunit_run, source_fingerprint.</SCP-IN-001>
+    <SCP-OUT-001>Build configuration and deployment — owned by M-MSBUILD; invoked here as a command.</SCP-OUT-001>
+    <SCP-OUT-002>Release compilation — owned by the future delivery command (PRIN-004); the gate is Debug-only.</SCP-OUT-002>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>A Debug build of the test mod carries [Conditional("DEBUG")] markers into the game container (M-MSBUILD.REQ-001).</REQ-001>
+    <REQ-002>A nonzero dotnet exit fails the task loudly as harness-did-not-run, never as a data verdict.</REQ-002>
+    <REQ-003>The gate builds Debug only: iterations never pay Release costs; a Release compile check is a delivery concern, not a verification one.</REQ-003>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `PROJECTS` : `ProjectSet` ; the only csproj coordinate source (dotnet domain)
+* `make_product` -> `dotnet build -c Debug` x (PROJECTS.product + PROJECTS.test_mods) ; fingerprint-resumable
+* `xunit_run(dotnet_filter, check)` -> `dotnet test --filter` : the test command harness (check=False => rc as verdict; `all` composes it after build)
+* `source_fingerprint` -> `tree_digest(Source/ + props)` => resume decision
+* `_dotnet` : nonzero exit => StageFailure(DID_NOT_RUN) ; `-p:NuGetAudit=false` (vuln-data worker ignores nuget_env redirects => NU1900; audits belong to delivery)
+  </Codemap>
+</M-DOTNET>

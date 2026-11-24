@@ -1,0 +1,47 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-FOCUS-MANAGER>
+  <Purpose>Adapter over the string-based native IMGUI focus system: assign each focusable widget instance a stable engine-scoped control name, forward focus requests, and resolve the focused widget for keyboard event dispatch.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>FocusManager: per-WidgetEngine bidirectional Widget &lt;-&gt; controlName registry.</SCP-IN-001>
+    <SCP-IN-002>Stable controlName assignment of the form "FV:{engine.Key}:{sequence}", invariant to layout changes.</SCP-IN-002>
+    <SCP-IN-003>Focus resolution: GUI.GetNameOfFocusedControl lookup restricted to this engine's name prefix.</SCP-IN-003>
+    <SCP-IN-004>Per-frame liveness pruning: widgets not rendered in a frame lose registration and native focus.</SCP-IN-004>
+    <SCP-OUT-001>Keyboard event dispatch — owned by M-FLEX-EVENTS.</SCP-OUT-001>
+    <SCP-OUT-002>Native text editing inside GUI.TextField — owned by the widget.</SCP-OUT-002>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Control names are assigned once per mounted instance and remain stable across frames and layout changes.</REQ-001>
+    <REQ-002>GetFocusedWidget returns null when the native focus belongs to another engine, an unregistered control, or nothing.</REQ-002>
+    <REQ-003>Unregistering a natively focused widget releases the native focus via GUI.FocusControl(null).</REQ-003>
+    <REQ-004>A widget not registered during the current render frame (including unmounted or unrendered subtrees) is unregistered at frame end.</REQ-004>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>widget: Widget — focusable instance registering itself during OnGUI.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Register returns the stable controlName for GUI.SetNextControlName.</OUT-001>
+      <OUT-002>GetFocusedWidget returns the focused Widget or null.</OUT-002>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>RequestFocus issues GUI.FocusControl(controlName).</EFF-001>
+      <EFF-002>Unregister of a focused widget issues GUI.FocusControl(null).</EFF-002>
+    </SideEffects>
+  </Contract>
+
+<Codemap>
+<![CDATA[
+
+* `FocusManager.Register` -> `Widget` + `string`
+* `TextField.OnGUI` -> `FocusManager.Register` -> `GUI.SetNextControlName`
+* `TextField.OnMouseDown` -> `FocusManager.RequestFocus` -> `GUI.FocusControl`
+* `FocusManager.GetFocusedWidget` -> `GUI.GetNameOfFocusedControl` -> `Widget` | `null`
+* `FocusManager.HasFocus` -> `FocusManager.GetFocusedWidget`
+* `WidgetEngine.ProcessUI` -> `FocusManager.BeginFrame` -> `FocusManager.EndFrame`
+* `WidgetTree.RemoveInstance` -> `FocusManager.Unregister`
+]]>
+  </Codemap>
+</M-FOCUS-MANAGER>

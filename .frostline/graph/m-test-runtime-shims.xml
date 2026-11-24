@@ -1,0 +1,50 @@
+<!-- parents: @.frostline/graph/s-verification.xml -->
+<M-TEST-RUNTIME-SHIMS>
+  <Purpose>Runtime-only UnityEngine/Verse shim assemblies (UnityEngine.CoreModule, UnityEngine.IMGUIModule, Assembly-CSharp) letting the core xunit suite execute FlexVerse.dll under .NET 10 without the game, plus the completeness gate that keeps them in sync.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>UnityShim: CoreModule surface — Rect/Vector2/Vector4/Color math, Object/Component/MonoBehaviour hierarchy, GameObject, Texture, Mathf, Debug, Time.</SCP-IN-001>
+    <SCP-IN-002>ImGuShim: IMGUIModule surface — Event/EventType/EventModifiers, GUI, GUIStyle, GUIContent, GUIUtility, ScaleMode/FocusType.</SCP-IN-002>
+    <SCP-IN-003>VerseShim: Assembly-CSharp surface — logging, GameFont/FloatRange, deterministic Text metrics, ButtonText recording and tooltip entrypoint.</SCP-IN-003>
+    <SCP-IN-005>TextRenderingShim: TextRenderingModule identity for TextAnchor and FontStyle.</SCP-IN-005>
+    <SCP-IN-004>ShimCompletenessTests: static memberref audit of FlexVerse.dll against the shim surface.</SCP-IN-004>
+    <SCP-OUT-001>Compile-time identity of Unity/Verse types — owned by Krafs.Rimworld.Ref (compile-only reference).</SCP-OUT-001>
+    <SCP-OUT-002>In-game behavior — owned by the Pickle plane; shims are inert stubs, never game truth.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Owners and signatures mirror real UnityEngine/Verse exactly (e.g. the Color→Vector4 conversion is owned by Color), so JIT binding succeeds under .NET 10.</PRIN-001>
+    <PRIN-002>Shims are runtime-only: compile identity always comes from the Krafs reference assemblies.</PRIN-002>
+    <PRIN-003>Shim drift fails loudly and centrally: the completeness gate names every missing member instead of scattering MissingMethodException across runtime tests.</PRIN-003>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Every memberref of FlexVerse.dll targeting a shimmed assembly and a shimmed declaring type must resolve against the shim surface (name + parameter count).</REQ-001>
+    <REQ-002>Declaring types that are not shimmed at all (game-plane only: Verse.Widgets, Verse.Text, ...) are explicitly skipped, not silently tolerated for shimmed types.</REQ-002>
+    <REQ-003>Property accessors bind as methods: shim state exposed to FlexVerse must be properties (GUI.color, Time.deltaTime, GUIStyle.alignment, GUIStyleState.background), not fields, wherever the real engine declares properties.</REQ-003>
+    <REQ-004>Shim GUIStyleState and GUIStyle copy construction support native TextField appearance fixtures but do not simulate actual caret, selection or IME behavior.</REQ-004>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>FlexVerse.dll memberrefs (System.Reflection.Metadata).</IN-001>
+      <IN-002>Shim assemblies from the test output directory.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Pass/fail verdict listing every unresolved member.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+<Codemap>
+<![CDATA[
+
+* `Shims/UnityShim` + `Shims/ImGuShim` + `Shims/VerseShim` + `Shims/TextRenderingShim` -> `UnityEngine.CoreModule` + `UnityEngine.IMGUIModule` + `Assembly-CSharp` + `UnityEngine.TextRenderingModule`
+* `UnityEngine.GUIStyle` -> `UnityEngine.GUIStyleState`
+* `ShimCompletenessTests.FlexVerseMemberRefs_AllResolveAgainstRuntimeShims` -> `MemberReference`
+* `CopyUnityShims` -> `UnityEngine.CoreModule.dll` + `UnityEngine.IMGUIModule.dll` + `Assembly-CSharp.dll` + `UnityEngine.TextRenderingModule.dll`
+]]>
+  </Codemap>
+</M-TEST-RUNTIME-SHIMS>

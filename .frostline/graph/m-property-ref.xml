@@ -1,0 +1,41 @@
+<!-- parents: @.frostline/graph/ss-property-refs.xml -->
+<M-PROPERTY-REF>
+  <Purpose>Owner-neutral reference to a reactive Behavior property slot, exposing read/write access and notifications when its occupant changes.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>IPropertyRef and IPropertyRef&lt;T&gt;: slot identity, owner, Get/Set, Changing and Changed events for Widget and FVP property owners.</SCP-IN-001>
+    <SCP-OUT-001>BindRef/WatchRef subscription policies, which decide whether to follow a particular Behavior instance or the slot across replacement.</SCP-OUT-001>
+    <SCP-OUT-002>Action orchestration and property-replacement interruption, owned by M-TIMELINE-BEHAVIOR.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Property refs expose the slot itself; they do not dictate how callers interpret replacement or completion of behavior execution.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Every acquired subscription is owned and released by its subscriber (e.g. BindRef/WatchRef policy or an executing Timeline action); the slot does not retain event subscription ownership.</REQ-001>
+    <REQ-002>Changing fires before real replacement and Changed after it; a SemEquals short-circuit produces neither event. Consumers may use Changing to interrupt observation before Reset of the previous occupant can emit OnComplete.</REQ-002>
+    <REQ-003>Get returns the current occupant and Set delegates to generated property semantics for both Widget and ordinary FVP owners, including activation and SemEquals handling.</REQ-003>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>slot owner, property name and optional typed Behavior assignment.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>current Behavior instance occupying the slot.</OUT-001>
+      <OUT-002>Changing and Changed notifications on real replacement.</OUT-002>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Set may mutate the property and invoke its existing activation/release mechanisms.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `IPropertyRef` -> `IPropertyRef<T>`
+* `IPropertyRef.{Get|Set|Changing|Changed}` -> Widget/FVP generated slot
+* `IPropertyRef` -> `BindRef` | `WatchRef` | `SetAction`
+]]>
+  </Codemap>
+</M-PROPERTY-REF>

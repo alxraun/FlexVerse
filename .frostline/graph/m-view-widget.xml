@@ -1,0 +1,30 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-VIEW-WIDGET>
+  <Purpose>Decorated layout container with externally supplied children and optional native invisible-button activation.</Purpose>
+  <Scope>
+    <SCP-IN-001>View visual surface: background color/image, image scaling/position/tint, independent borders/radii and BoxShadow.</SCP-IN-001>
+    <SCP-IN-002>View Tooltip, Disabled and OnClick Props; children returned by BuildRenderTree.</SCP-IN-002>
+    <SCP-OUT-001>Child clipping and transform geometry — owned by M-WIDGET and M-CLIP-SERVICE.</SCP-OUT-001>
+    <SCP-OUT-002>Shared painting algorithms — owned by M-APPEARANCE-DRAWERS.</SCP-OUT-002>
+  </Scope>
+  <Requirements>
+    <REQ-001>View owns only its own appearance and relies on WidgetRenderer for children; decoration does not change layout or clip descendants.</REQ-001>
+    <REQ-002>OnGUI delegates surface, outer shadow, border and optional background image to appearance drawers.</REQ-002>
+    <REQ-003>When enabled and OnClick is present, native Widgets.ButtonInvisible may invoke that action; Disabled prevents activation.</REQ-003>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Calculated Rect, visual Props, Tooltip and child WidgetList.</IN-001></Inputs>
+    <Outputs><OUT-001>Decorated native IMGUI container with its declarative children.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Native drawing and optional OnClick action on activation.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `View` : `Widget`
+* `View.{BackgroundColor|BackgroundImage|BackgroundSize|BackgroundPosition|BackgroundImageTintColor|BorderColor|BorderRadius|BorderTopLeftRadius|BorderTopRightRadius|BorderBottomRightRadius|BorderBottomLeftRadius|BoxShadow}`
+* `View.{OnClick|Disabled|Tooltip|Children}`
+* `View.OnGUI` -> `CornerRadii.Resolve` -> `ShadowDrawer.Draw` + `BackgroundDrawer.Draw` + `BorderDrawer.Draw`
+* `View.OnGUI` -> `Widgets.ButtonInvisible` => `View.OnClick`
+* `View.BuildRenderTree` -> `Widget.Children`
+]]>
+  </Codemap>
+</M-VIEW-WIDGET>

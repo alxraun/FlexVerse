@@ -1,0 +1,39 @@
+<!-- parents: @.frostline/graph/s-widgets.xml -->
+<SS-WIDGET-RUNTIME>
+  <Purpose>Common UI runtime: the Widget contract, instances, reconciliation, signal/layout/render pipeline, inherited context, 2D transforms, clipping, input dispatch and focus.</Purpose>
+  <Scope>
+    <SCP-IN-001>Widget declarations, lifecycle and input/render hooks, including the explicit ChildrenGuiSpace native-context contract.</SCP-IN-001>
+    <SCP-IN-002>WidgetTree and WidgetEngine: keyed instances, signals, reconciliation, layout and ordered rendering.</SCP-IN-002>
+    <SCP-IN-003>Published WidgetGeometrySnapshot, builder and read-only TransformService coordinate queries.</SCP-IN-003>
+    <SCP-IN-004>ClipService read-only local and ancestor clipping queries over the published snapshot.</SCP-IN-004>
+    <SCP-IN-005>WidgetHitTester, FlexEventDispatcher, FocusManager and InheritedContextManager.</SCP-IN-005>
+    <SCP-IN-006>EngineRegistry and FVUI host facade.</SCP-IN-006>
+    <SCP-OUT-001>Flexbox calculation details — owned by SS-FLEXBOX.</SCP-OUT-001>
+    <SCP-OUT-002>Concrete widgets and surface painting — owned by SS-WIDGET-LIBRARY.</SCP-OUT-002>
+  </Scope>
+  <Principles>
+    <PRIN-001>Definitions and instances are distinct; only the engine modifies the instance tree.</PRIN-001>
+    <PRIN-002>Pointer hit testing uses the geometry and clip snapshots retained from the previous ProcessUI call.</PRIN-002>
+    <PRIN-003>WidgetRenderer owns render orchestration and GUI.matrix scopes; widgets provide native child-context hooks without concrete-type checks.</PRIN-003>
+  </Principles>
+  <Requirements>
+    <REQ-001>Matched keys retain instance identity across reconciliation; removed widgets release lifecycle resources and subscriptions.</REQ-001>
+    <REQ-002>InheritedContextManager uses generated Widget._Update{Prop}FromAncestor to update consumers.</REQ-002>
+    <REQ-003>Active engines are keyed and discoverable through EngineRegistry.</REQ-003>
+    <REQ-004>The engine publishes geometry after signals/layout; native child-transform changes request another publication before rendering descendants.</REQ-004>
+    <REQ-005>Paint order is increasing sibling ZIndex with stable ties; hit testing examines the reverse order.</REQ-005>
+  </Requirements>
+  <Codemap>
+<![CDATA[
+* `Widget` + `WidgetTree` + `WidgetEngine` + `InheritedContextManager` + `WidgetGeometryBuilder` + `WidgetGeometrySnapshot` + `TransformService` + `ClipService` + `WidgetHitTester` + `FlexEventDispatcher` + `FocusManager`
+* `WidgetEngine.ProcessUI` -> `WidgetReconciler` + `WidgetSignalQueue` + `WidgetLayoutCalculator` + `WidgetGeometryBuilder.Refresh` + `FlexEventDispatcher.ProcessEvents` + `WidgetRenderer.RenderInstanceTree`
+* `WidgetGeometryBuilder.Refresh` -> `WidgetTree.GetChildrenInPaintOrder` + `WidgetLayoutCalculator.Results` + `WidgetLayoutCalculator.PaddingBoxes` -> `WidgetGeometrySnapshot.Publish`
+* `WidgetRenderer.RenderWithChildren` -> `Widget.OnGUI` + `Widget.BeginChildrenGUI` + `Widget.EndChildrenGUI`
+* `WidgetHitTester.HitTest` -> `ClipService.ContainsChildrenPoint`
+* `FlexEventDispatcher.ProcessEvents` -> `WidgetHitTester.HitTest` -> `Widget.OnMouseDown` | `Widget.OnMouseUp` | `Widget.OnMouseDrag`
+* `FocusManager.Register` + `FocusManager.GetFocusedWidget` -> `FlexEventDispatcher.DispatchNativeKeyboardEvents`
+* `FVUI.Render` -> `EngineRegistry.GetOrCreate` -> `WidgetEngine.ProcessUI`
+* `Widget.GetProperty` -> `Refs` -> `IPropertyRef`
+]]>
+  </Codemap>
+</SS-WIDGET-RUNTIME>

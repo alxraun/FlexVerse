@@ -1,0 +1,36 @@
+<!-- parents: @.frostline/graph/ss-behavior-primitives.xml -->
+<M-SPRING-BEHAVIOR>
+  <Purpose>Physical spring integration: accelerate a value toward a target governed by tension, mass and damping until it settles.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>SpringBehavior&lt;T&gt;: tension/mass/damping parameters, velocity state, settle detection.</SCP-IN-001>
+    <SCP-IN-002>Spring authoring facade with parameter presets.</SCP-IN-001>
+    <SCP-OUT-001>Fixed-duration motion — owned by M-TWEEN-BEHAVIOR.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>The spring settles when velocity and remaining distance fall below epsilon, then reports Finished per SS-BEHAVIOR-PRIMITIVES.REQ-002.</REQ-001>
+    <REQ-002>Changing the target mid-flight keeps current velocity (no restart).</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>target: T — rest position.</IN-001>
+      <IN-002>tension/mass/damping: float — spring parameters.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>value: T — integrated position each Update.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `SpringBehavior<T>` : `Behavior<T>`
+* `SpringBehavior<T>.Update(deltaTime)` -> integrate(tension, mass, damping, velocity) => value == target + velocity == 0
+* `Spring.To<T>(...)` + `Spring.From<T>(...)` + `Spring.FromTo<T>(...)` + `Spring.State<T>(...)` -> `SpringBehavior<T>`
+]]>
+  </Codemap>
+</M-SPRING-BEHAVIOR>

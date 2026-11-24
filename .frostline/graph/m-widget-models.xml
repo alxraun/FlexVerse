@@ -1,0 +1,41 @@
+<!-- parents: @.frostline/graph/ss-source-generators.xml -->
+<M-WIDGET-MODELS>
+  <Purpose>Schema contract between analysis and emission: the widget/property/structure models produced by M-REACTIVITY-ANALYZER and consumed by M-WIDGET-EMITTER.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>WidgetModel and StructureModel: widget identity, hierarchy, usings, members.</SCP-IN-001>
+    <SCP-IN-002>PropertyModel with PropertyKind and Reactivity flags: per-property analysis verdict.</SCP-IN-002>
+    <SCP-IN-003>TypeIdentity and Initializer: type reference and construction description.</SCP-IN-003>
+    <SCP-OUT-001>Extraction of models from source — owned by M-REACTIVITY-ANALYZER.</SCP-OUT-001>
+    <SCP-OUT-002>Consumption of models into generated code — owned by M-WIDGET-EMITTER.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Models are passive data: no Roslyn dependencies leak past analysis, no emission logic inside.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>The model schema evolves only through coordinated change of M-REACTIVITY-ANALYZER.REQ-001 and M-WIDGET-EMITTER.IN-001.</REQ-001>
+    <REQ-002>PropertyKind has only Fvp, Prop, State and InheritedContext. SlotOwner stores the original declaration owner as a string, without Roslyn objects or a separate layout category.</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>analysis verdicts: extraction output filling the models.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>widget models: complete description of a widget sufficient for emission.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `WidgetModel` -> `WidgetModel.GetProperties` + `StructureModel` + `TypeIdentity`
+* `PropertyModel` -> `PropertyKind` + `Reactivity` + `Initializer`
+* `WidgetExtractor.Build` -> `WidgetModel` -> `WidgetEmitter.Emit`
+]]>
+  </Codemap>
+</M-WIDGET-MODELS>

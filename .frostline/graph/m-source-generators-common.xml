@@ -1,0 +1,41 @@
+<!-- parents: @.frostline/graph/ss-source-generators.xml -->
+<M-SOURCE-GENERATORS-COMMON>
+  <Purpose>Shared infrastructure of all FlexVerse source generators: the incremental generator entry point and common code-building, Roslyn and string utilities used by every generator pipeline stage.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>FlexVerseGenerator: incremental generator entry dispatching generator pipelines.</SCP-IN-001>
+    <SCP-IN-002>CodeBuilder: generated C# source-text construction.</SCP-IN-002>
+    <SCP-IN-003>RoslynUtils and StringUtils: shared analysis/emission helpers.</SCP-IN-003>
+    <SCP-OUT-001>Widget pipeline stages — owned by M-REACTIVITY-ANALYZER, M-WIDGET-MODELS and M-WIDGET-EMITTER.</SCP-OUT-001>
+    <SCP-OUT-002>FlexVerseProperty ([FVP]) generator pipeline — owned by M-FLEXVERSE-PROPERTY.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Shared utilities carry no widget- or property-specific semantics; they are generic over pipelines.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Adding a generator pipeline requires no changes to shared utilities.</REQ-001>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>Roslyn incremental generation context and type symbols supplied by generator pipelines.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Registered pipeline outputs and source text assembled through shared utilities.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>FlexVerseGenerator adds generated sources and reports pipeline diagnostics to the compilation.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `FlexVerseGenerator` : `IIncrementalGenerator` -> generator pipelines
+* `FlexVerseGenerator` -> `WidgetPipeline.Run` | `FvpProvider.CreatePipeline`
+* `CodeBuilder` -> generated `.g.cs`
+* `RoslynUtils` + `StringUtils` -> `WidgetExtractor.Build` + `WidgetEmitter.Emit`
+]]>
+  </Codemap>
+</M-SOURCE-GENERATORS-COMMON>

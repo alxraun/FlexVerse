@@ -1,0 +1,42 @@
+<!-- parents: @.frostline/graph/p-flexverse-tooling.xml -->
+<M-MSBUILD>
+  <Purpose>Single MSBuild mechanism of the repository: shared compilation configuration, framework wiring for consumers, RimWorld mod deployment, and package build — the entire Source/MSBuild layer.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Directory.Build.props/targets and the MSBuild/ props chain (Paths, PackageMetadata, Compiler, Environment).</SCP-IN-001>
+    <SCP-IN-002>Framework wiring: ProjectReference to FlexVerse, source generator as Analyzer, PropertyWeaver, Fody.</SCP-IN-001>
+    <SCP-IN-003>DeployToModFolder into Mods/{mod}/Assemblies and the FlexVerse package build.</SCP-IN-001>
+    <SCP-IN-004>nuget.config, global.json, FlexVerse.slnx.</SCP-IN-001>
+    <SCP-OUT-001>Authored mod content (About.xml, Languages/) — product identity owned by P-FLEXVERSE and P-FLEXTOOLS.</SCP-OUT-001>
+    <SCP-OUT-002>Running builds — done by S-VERIFICATION stages and developers via dotnet CLI.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>A Debug build of the test mod carries [Conditional("DEBUG")] markers into the game container (M-TEST-GAME-SOURCE runs depend on it).</REQ-001>
+    <REQ-002>DeployToModFolder copies {AssemblyName}.dll (+pdb) into $(ModsDir)$(ModName)/Assemblies after Build when ModName is set.</REQ-002>
+    <REQ-003>The weaver path is injected locally (InjectLocalWeaverPath) so consumer builds need no published Fody package.</REQ-003>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>csproj files of Source/ projects; ModName/ModsDir properties.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>compiled assemblies deployed to Mods/{mod}/Assemblies and the FlexVerse package.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Writes build outputs into Mods/ and package directories on every Build.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `Directory.Build.props` -> `FlexVerse.Paths.props` + `FlexVerse.PackageMetadata.props` + `FlexVerse.Compiler.props`
+* `Directory.Build.targets` -> `FlexVerse.Environment.targets` + `FlexVerse.RimWorld.targets` + `FlexVerse.Debug.targets`
+* `FlexVerse.Debug.targets` -> `ProjectReference(FlexVerse)` + `ProjectReference(FlexVerse.SourceGenerators) : Analyzer` + `ProjectReference(FlexVerse.PropertyWeaver.Fody)` + `PackageReference(Fody)` => consumer wiring
+* `InjectLocalWeaverPath` + `EnsureNuGetLocalDir` => local weaver resolution
+* `FlexVerse.RimWorld.targets` -> `DeployToModFolder` -> `$(ModsDir)$(ModName)/Assemblies/{AssemblyName}.dll + .pdb`
+* `FlexVerse.Package/build/FlexVerse.targets` => package artifacts
+* `nuget.config` + `global.json` + `FlexVerse.slnx` : repo build config]]>
+  </Codemap>
+</M-MSBUILD>

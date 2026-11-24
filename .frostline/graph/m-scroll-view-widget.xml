@@ -1,0 +1,32 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-SCROLL-VIEW-WIDGET>
+  <Purpose>Native IMGUI scroll viewport coordinating mutable scroll position, child-space transforms and rectangular clipped child rendering.</Purpose>
+  <Scope>
+    <SCP-IN-001>ScrollView horizontal/vertical native scroll state, viewport rect and content extents.</SCP-IN-001>
+    <SCP-IN-002>GetChildrenTransform and native BeginChildrenGUI/EndChildrenGUI pairing.</SCP-IN-002>
+    <SCP-IN-003>OnScroll notifications, Tooltip and optional background/border drawing.</SCP-IN-003>
+    <SCP-OUT-001>Geometry/hit testing and viewport clip calculation — owned by M-TRANSFORM-SERVICE and M-CLIP-SERVICE.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>GetChildrenTransform translates descendants by negative ScrollPosition; BeginScrollView already applies the native scroll translation while drawing, so WidgetRenderer must not apply it a second time.</REQ-001>
+    <REQ-002>The viewport is the published padding box supplied explicitly by WidgetRenderer; scrolled descendants are clipped and hit-tested against that same rect.</REQ-002>
+    <REQ-003>Native scroll view caches viewport/content geometry across unchanged layout and updates cached rects when layout or viewport changes.</REQ-003>
+    <REQ-004>OnScroll reports native ScrollPosition changes; content extents account for child layout bounds and trailing padding.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Children, scroll axis Props, native wheel/scrollbar input and host Rect.</IN-001></Inputs>
+    <Outputs><OUT-001>Current ScrollPosition as a child-space Matrix4x4 and clipped native viewport.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Opens/closes Widgets.BeginScrollView/EndScrollView and mutates owned ScrollPosition State.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `ScrollView` : `Widget`
+* `ScrollView.{ScrollHorizontal|ScrollVertical|OnScroll|Disabled|Tooltip|BackgroundColor|Color}`
+* `ScrollView.ScrollPosition` : `Behavior<Vector2>`
+* `WidgetGeometryBuilder.Refresh` -> `Widget.GetChildrenMatrix` -> `ScrollView.GetChildrenTransform` -> `Matrix4x4.Translate`
+* `ScrollView.BeginChildrenGUI` -> `Widgets.ScrollHorizontal` + `Widgets.BeginScrollView` -> `ChildrenGuiSpace`
+* `ScrollView.EndChildrenGUI` -> `Widgets.EndScrollView`
+* `ScrollView.CalculateContentRect` -> `WidgetEngine.GetLayoutResults`
+]]>
+  </Codemap>
+</M-SCROLL-VIEW-WIDGET>

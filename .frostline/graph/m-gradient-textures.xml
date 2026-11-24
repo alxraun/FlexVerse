@@ -1,0 +1,35 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-GRADIENT-TEXTURES>
+  <Purpose>Deterministic Unity Texture2D factory for reusable linear, radial and conic gradient backgrounds.</Purpose>
+  <Scope>
+    <SCP-IN-001>GradientTextures.Linear, Radial, Conic and GradientStop.</SCP-IN-001>
+    <SCP-IN-002>Cache of generated textures, released at the framework root teardown.</SCP-IN-002>
+    <SCP-OUT-001>Widget-specific gradient Prop and arbitrary per-frame shader rendering.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Inputs require positive bounded dimensions (each at most 4096 and at most 4194304 pixels) and at least one stop with finite position.</REQ-001>
+    <REQ-002>Stops are clamped to [0,1] and stably sorted; equal positions preserve their input order.</REQ-002>
+    <REQ-003>Linear angle, radial center/radius and conic start angle use top-down UI coordinates; output is an ordinary Texture2D for BackgroundImage.</REQ-003>
+    <REQ-004>Equivalent parameters return the cached texture; live references are not evicted and ClearCache destroys cached textures at FlexVerseRoot teardown.</REQ-004>
+    <REQ-005>Textures are generated on the Unity main thread, not in a background worker.</REQ-005>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>Gradient dimensions, kind-specific geometry and GradientStop array.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Cached Texture2D instance suitable for BackgroundImage.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Allocates Unity Texture2D objects and destroys them on ClearCache.</EFF-001>
+    </SideEffects>
+  </Contract>
+<Codemap>
+<![CDATA[
+
+* `GradientStop` -> `GradientTextures.Linear` | `GradientTextures.Radial` | `GradientTextures.Conic`
+* `GradientTextures.Linear` + `GradientTextures.Radial` + `GradientTextures.Conic` -> `Texture2D` -> `BackgroundImage`
+* `FlexVerseRoot.OnDestroy` -> `GradientTextures.ClearCache`
+]]>
+  </Codemap>
+</M-GRADIENT-TEXTURES>

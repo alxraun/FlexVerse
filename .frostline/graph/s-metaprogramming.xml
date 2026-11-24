@@ -1,0 +1,30 @@
+<!-- parents: @.frostline/graph/p-flexverse.xml -->
+<S-METAPROGRAMMING>
+  <Purpose>Build-time code production pipeline: generate reactive implementations for Widget and ordinary FVP declarations, then weave compiled auto-properties onto those implementations.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Roslyn source generation for Widget and ordinary FVP partial classes — owned by SS-SOURCE-GENERATORS.</SCP-IN-001>
+    <SCP-IN-002>Generated counterpart contract shared by source generation and IL weaving.</SCP-IN-002>
+    <SCP-IN-003>Post-compile IL redirection of annotated auto-properties via Fody/Mono.Cecil.</SCP-IN-003>
+    <SCP-OUT-001>Runtime behavior of generated code — owned by S-RUNTIME-PLATFORM and S-WIDGETS.</SCP-OUT-001>
+    <SCP-OUT-002>Game engine APIs: pipeline targets netstandard2.0 and never references Unity types.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Source generation and IL weaving communicate through generated counterpart symbols.</PRIN-001>
+    <PRIN-002>Invalid declarations produce source-generation diagnostics; missing generated counterparts produce explicit weaving errors.</PRIN-002>
+    <PRIN-003>Generated symbols are the only coupling to the runtime: e.g. Widget._Update{Prop}FromAncestor (see M-INHERITED-CONTEXT).</PRIN-003>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Supported Widget and ordinary FVP declarations receive reactive implementations compatible with property weaving.</REQ-001>
+    <REQ-003>The weaver redirects every annotated auto-property getter/setter to its generated counterpart (M-PROPERTY-WEAVER.REQ-001).</REQ-003>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `FlexVerseGenerator` -> `WidgetEmitter.Emit` | `FvpEmitter.Emit`
+* `WidgetEmitter.Emit` + `FvpEmitter.Emit` -> `ModuleWeaver.Execute`
+]]>
+  </Codemap>
+</S-METAPROGRAMMING>

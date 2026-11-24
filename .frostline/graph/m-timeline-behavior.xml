@@ -1,0 +1,59 @@
+<!-- parents: @.frostline/graph/ss-behavior-composites.xml -->
+<M-TIMELINE-BEHAVIOR>
+  <Purpose>Declarative action orchestration as a Behavior: sequence, parallelism, conditions, looping, and reactive-slot assignment, without owning the behavior algorithms or property-held values.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Timeline static factory builds inert action definitions and creates TimelineBehavior.</SCP-IN-001>
+    <SCP-IN-002>TimelineBehavior provides Behavior lifecycle integration; TimelinePlayer drives an independent execution tree of ITimelineAction instances.</SCP-IN-002>
+    <SCP-IN-003>SetAction uses IPropertyRef and the actual slot occupant to observe OnComplete and Changing; other actions implement Wait, WaitUntil, Call, Sequence, Parallel, If and While.</SCP-IN-003>
+    <SCP-OUT-001>Value interpolation and target adaptation belong to primitive behaviors and SequenceBehavior.</SCP-OUT-001>
+    <SCP-OUT-002>Property activation, update scheduling and registry ownership belong to the Widget/FVP property-owner lifecycle and runtime services.</SCP-OUT-002>
+    <SCP-OUT-003>BindRef/WatchRef subscription policies are separate from Timeline execution.</SCP-OUT-003>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Timeline controls the ordering and termination of actions, not the lifetime or algorithm of behaviors assigned into external property slots.</PRIN-001>
+    <PRIN-002>Action success (Completed) and interruption (Interrupted) are internal results; Behavior.OnComplete is the normal end-of-updating notification for either outcome and for explicit Stop.</PRIN-002>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Timeline.Create returns an Inactive TimelineBehavior; creation does not execute actions. Assignment to a Widget/FVP reactive property activates and schedules it through the ordinary Behavior lifecycle; no separate Timeline.Play or scheduler.</REQ-001>
+    <REQ-002>TimelineBehavior starts updating via StartUpdating and stops via StopUpdating; OnComplete is emitted when a running timeline finishes, is interrupted, or is explicitly stopped, so BehaviorUpdater unsubscribes. Active idle instances do not automatically replay.</REQ-002>
+    <REQ-003>Sequence starts its children in order, advances on Completed and propagates Interrupted; Parallel starts children concurrently and completes only after all Completed, propagating any interruption. Empty composites complete immediately.</REQ-003>
+    <REQ-004>Call invokes its callback once and completes synchronously; Wait waits a finite nonnegative duration; WaitUntil polls a predicate; If selects its branch once; While reevaluates the predicate before each iteration and starts at most one iteration per update tick.</REQ-004>
+    <REQ-005>Set accepts typed or untyped IPropertyRef plus compatible Behavior, assigns a fresh runtime clone, and awaits OnComplete of the actual installed Behavior. SemEquals no-op assignments instead wait for the retained slot occupant without generating synthetic OnComplete.</REQ-005>
+    <REQ-006>Set listens for replacement through IPropertyRef.Changing; real replacement before observed OnComplete interrupts the action. Its own initial assignment is not treated as replacement. Set manages its own subscriptions, without BindRef/WatchRef dependencies.</REQ-006>
+    <REQ-007>Interrupted children propagate interruption to the root; interruption prevents subsequent dependent actions but does not undo external effects. Behavior.OnComplete remains a lifecycle signal, not proof of action success.</REQ-007>
+    <REQ-008>Stop and Reset terminate the execution tree and unsubscribe Timeline-owned handlers, without resetting, stopping or reclaiming behaviors already assigned into property slots. StopUpdating emits the standard OnComplete if updating was active.</REQ-008>
+    <REQ-009>Each playback clones its action blueprint and has isolated mutable execution state; cloning a TimelineBehavior does not clone captured property owners or delegates. A completed instance stays Active and idle; replay requires a separately activated instance.</REQ-009>
+    <REQ-010>Actions handle synchronous completion, nested callbacks, interruption and repeated Stop without replay or duplicate downstream side effects; instant actions within Sequence may drain in a single tick, while instant While bodies cannot cause an unbounded same-tick loop.</REQ-010>
+    <REQ-011>Set completion strictly depends on receiving OnComplete, even when a retained semantically equal occupant is already idle. No value equality, IsUpdating polling or synthetic success substitutes for the event; callers must account for never-emitting behaviors.</REQ-011>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>ITimelineAction blueprint: declarative action tree.</IN-001>
+      <IN-002>deltaTime: float from BehaviorUpdater through TimelineBehavior.Update.</IN-002>
+      <IN-003>IPropertyRef slot and Behavior blueprint for Set.</IN-003>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Internal action outcome: Running, Completed or Interrupted (plus Ready before start).</OUT-001>
+      <OUT-002>Behavior lifecycle: Active with IsUpdating false after termination; OnComplete emitted when a running update cycle stops.</OUT-002>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Call callbacks, property assignment through IPropertyRef, and action-owned event subscriptions while executing.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `Timeline.{Create|Set|Wait|WaitUntil|Call|Sequence|Parallel|If|While}` -> `ITimelineAction` -> `TimelineBehavior`
+* `TimelineBehavior.Activate` -> `Behavior.StartUpdating` + `TimelinePlayer.Start`
+* `TimelineBehavior.Update` -> `TimelinePlayer.Update` -> `ITimelineAction.Update`
+* `TimelineBehavior.Stop` -> `TimelinePlayer.Stop` + `Behavior.StopUpdating`
+* `ITimelineAction` -> `SetAction` | `WaitAction` | `WaitUntilAction` | `CallAction` | `SequenceAction` | `ParallelAction` | `IfAction` | `WhileAction`
+* `SetAction` -> `IPropertyRef.{Set|Get|Changing}` + `Behavior.OnComplete`
+* `SequenceAction` + `ParallelAction` + `IfAction` + `WhileAction` -> child `ITimelineAction.Status`
+]]>
+  </Codemap>
+</M-TIMELINE-BEHAVIOR>

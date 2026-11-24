@@ -1,0 +1,5 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <Import Project="$(MSBuildDir)FlexVerse.Environment.targets" />
+  <Import Project="$(MSBuildDir)FlexVerse.RimWorld.targets" />
+</Project>

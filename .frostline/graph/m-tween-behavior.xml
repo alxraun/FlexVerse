@@ -1,0 +1,41 @@
+<!-- parents: @.frostline/graph/ss-behavior-primitives.xml -->
+<M-TWEEN-BEHAVIOR>
+  <Purpose>Duration-based interpolation: move a value toward a target over a duration through an easing curve, supporting retargeting and speed calibration.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>TweenBehavior&lt;T&gt;: duration, easing curve, elapsed progress, retargeting.</SCP-IN-001>
+    <SCP-IN-002>Easing curve library and the Animate authoring facade.</SCP-IN-001>
+    <SCP-IN-003>Speed calibration for normalized progress.</SCP-IN-001>
+    <SCP-OUT-001>Physical (non-linear-time) motion — owned by M-SPRING-BEHAVIOR.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Retargeting mid-flight interpolates from the current value, preserving elapsed-time semantics per SS-BEHAVIOR-PRIMITIVES.REQ-001.</REQ-001>
+    <REQ-002>Progress reaches exactly 1.0 (value == target) and reports Finished; no overshoot for finite easing.</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>target: T — destination value.</IN-001>
+      <IN-002>duration: float — seconds; curve: Easing — easing function.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>value: T — eased interpolated value each Update.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `TweenBehavior<T>` : `Behavior<T>`
+* `TweenBehavior<T>.Update(deltaTime)` -> `EasingFunction(progress)` => value
+* `Animate.To<T>(target, duration, easing)` + `Animate.From<T>(...)` + `Animate.FromTo<T>(...)` + `Animate.State<T>(...)` -> `TweenBehavior<T>`
+* `Animate.Keyframes<T>(...)` -> `KeyframeBehavior<T>`
+* `Animate.State(FlexDirections|Align|Justify|Wrap)` -> `Behavior<T>`
+* `EasingFunction(float progress) -> float`
+* `Easing.{Linear|QuadEaseIn|QuadEaseOut|QuadEaseInOut|CubicEaseIn|CubicEaseOut|CubicEaseInOut|SineEaseIn|SineEaseOut|SineEaseInOut|BackEaseIn|BackEaseOut|BackEaseInOut|CircEaseIn|CircEaseOut|CircEaseInOut|ExpoEaseIn|ExpoEaseOut|ExpoEaseInOut|ElasticEaseIn|ElasticEaseOut|ElasticEaseInOut|QuartEaseIn|QuartEaseOut|QuartEaseInOut|QuintEaseIn|QuintEaseOut|QuintEaseInOut}` : `EasingFunction`
+]]>
+  </Codemap>
+</M-TWEEN-BEHAVIOR>

@@ -1,0 +1,46 @@
+<!-- parents: @.frostline/graph/ss-behavior-composites.xml -->
+<M-EFFECT-BEHAVIOR>
+  <Purpose>Dependency-triggered side effects: execute a callback on configured behavior events and expose one synchronous lifecycle per actual callback execution.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>EffectBehavior: dependency instances, trigger conditions, frame-coalesced callback dispatch and execution lifecycle.</SCP-IN-001>
+    <SCP-IN-002>Effect authoring facade.</SCP-IN-002>
+    <SCP-OUT-001>Value animation — effects produce no typed Value or Target.</SCP-OUT-001>
+    <SCP-OUT-002>Widget, FVP, IPropertyRef, BindRef and WatchRef integration — owned by reactive property infrastructure.</SCP-OUT-002>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>EffectTrigger selects own OnActivate, dependency OnUpdate or dependency OnComplete; callbacks run on configured event occurrences, never on Update(deltaTime). At most one callback execution is admitted per Unity frame.</REQ-001>
+    <REQ-002>A completed callback execution does not terminate observation: after OnComplete the effect remains Active and can execute for later eligible events.</REQ-002>
+    <REQ-003>Each admitted callback execution emits OnStart, invokes EffectCallback, emits OnUpdate(1f), then OnComplete synchronously. IsUpdating is true only inside the execution cycle, and cleared even when an observer or callback throws; a failing callback does not emit successful OnUpdate.</REQ-003>
+    <REQ-004>Effect stores strong references to the specified Behavior instances, subscribes when activated and releases event subscriptions on Reset; it never activates, updates or resets its dependencies.</REQ-004>
+    <REQ-005>Effect observes the supplied Behavior instances, not property slots; replacing a Behavior in a Widget or FVP property does not redirect its dependencies. Effect does not depend on Widget, FVP or property-reference mechanisms.</REQ-005>
+    <REQ-006>Reentrant triggers during an ongoing execution do not nest an execution cycle. Changing dependencies or triggers while Active replaces the subscribed event set.</REQ-006>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>dependencies: Behavior instances — borrowed triggers with strong identity references.</IN-001>
+      <IN-002>callback: Action — executed when an eligible trigger is admitted.</IN-002>
+      <IN-003>trigger: EffectTrigger flags — OnActivate, OnUpdate, OnComplete.</IN-003>
+    </Inputs>
+    <Outputs>
+      <OUT-001>OnStart, OnUpdate(1f), OnComplete — synchronous lifecycle around each admitted execution, not a produced typed value.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Subscribes to configured dependency events and releases them on Reset or live reconfiguration.</EFF-001>
+      <EFF-002>Invokes user callback upon an admitted event trigger, at most once per Unity frame.</EFF-002>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `EffectBehavior` : `Behavior`
+* `Effect.Create(callback|dependencies)` -> `EffectBehavior`
+* `EffectBehavior.Activate` -> `Behavior.OnUpdate` | `Behavior.OnComplete`
+* `Behavior.OnUpdate` | `Behavior.OnComplete` -> `EffectBehavior.HandleEffectTrigger`
+* `EffectBehavior.HandleEffectTrigger` -> `Behavior.StartUpdating` -> `EffectBehavior.EffectCallback` -> `Behavior.OnUpdate` -> `Behavior.StopUpdating`
+* `EffectBehavior.Reset` -> `Behavior.Reset`
+]]>
+  </Codemap>
+</M-EFFECT-BEHAVIOR>

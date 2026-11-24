@@ -1,0 +1,42 @@
+<!-- parents: @.frostline/graph/s-verification.xml -->
+<M-XUNIT>
+  <Purpose>The offline xunit suite: framework facts provable without the game (models, generators, weaver, tools) as a deployed test assembly driven by the xunit harness (M-OP-TEST).</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Source/FlexVerse.Test/Xunit: scenario classes grouped by tested project (FlexVerse, SourceGenerators, PropertyWeaver, FlexTools) plus the Shims and Fixtures support code.</SCP-IN-001>
+    <SCP-IN-002>Namespace-per-project convention (FlexVerse.Test, FlexVerse.Test.SourceGenerators, ...) so the harness filter selects by project.</SCP-IN-002>
+    <SCP-OUT-001>Harness mechanics (filter parsing, exit codes, build) — owned by M-OP-TEST / M-DOTNET.</SCP-OUT-001>
+    <SCP-OUT-002>In-game behavior — owned by the pickle suite (M-PICKLE) and M-EXPLORER.</SCP-OUT-002>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>One top-level directory per tested project, flat inside; an aspect suffix (.weaver / .semantics / .retarget) splits a topic, never a new directory.</REQ-001>
+    <REQ-002>Only members whose code paths never touch RimWorld/Verse/UnityEngine are exercised; Unity-free FlexTools sources are compiled directly into the test project.</REQ-002>
+    <REQ-003>ShimCompleteness guards the Unity shim surface of M-TEST-RUNTIME-SHIMS.</REQ-003>
+    <REQ-004>R03–R09 headless tests are authored verification fixtures; presence of a test source does not imply it has been executed or that Unity/Waylith native IMGUI behavior is accepted.</REQ-004>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>A dotnet test filter expression selecting classes or namespaces.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>xunit pass/fail verdict == dotnet test exit code, consumed by M-OP-TEST.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+<Codemap>
+<![CDATA[
+
+* `Xunit/FlexVerse` + `Xunit/SourceGenerators` + `Xunit/PropertyWeaver` + `Xunit/FlexTools` -> `FlexVerse.Test`
+* `ShimCompletenessTests.FlexVerseMemberRefs_AllResolveAgainstRuntimeShims` -> `Shims/UnityShim` + `Shims/ImGuShim` + `Shims/VerseShim`
+* `TestPaths` + `TempDir` + `WeaveFixture` + `GeneratorRunner`
+* `WeaveFixture` -> `ModuleWeaver.Execute`
+* `GeneratorRunner` -> `GeneratorResult`
+* `ControlledInputsTests` + `AppearanceTests` + `ZIndexTests` + `FocusManagerTests` -> `FlexVerse.Test`
+]]>
+  </Codemap>
+</M-XUNIT>

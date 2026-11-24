@@ -1,0 +1,21 @@
+<!-- parents: @.frostline/graph/s-widget-debugger.xml -->
+<M-DBG-ADAPT>
+  <Purpose>Present behavior lifecycle, values and configuration through public readable parameters.</Purpose>
+  <Scope>
+    <SCP-IN-001>IBehaviorAdapter and DefaultAdapter with cached public property discovery.</SCP-IN-001>
+    <SCP-OUT-001>Private algorithm state and behavior mutation are excluded.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Every Behavior subtype uses the shared adapter, including current and future composite types.</REQ-001>
+    <REQ-002>Expose public instance getters without index parameters, including State, IsUpdating and typed Value/Target. Never read private fields or infer completion from value equality.</REQ-002>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Behavior instance.</IN-001></Inputs>
+    <Outputs><OUT-001>Named accessors for actual public parameters.</OUT-001></Outputs>
+    <SideEffects><None /></SideEffects>
+  </Contract>
+  <Codemap><![CDATA[
+* `DefaultAdapter` : `IBehaviorAdapter`
+* `DefaultAdapter.GetSlots` -> `AccessorFactory.Create` -> `IAccessor`
+]]></Codemap>
+</M-DBG-ADAPT>

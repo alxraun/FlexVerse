@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>FlexVerse</AssemblyName>
+    <RootNamespace>FlexVerse</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ModName>FlexVerse</ModName>
+    <IsPackable>false</IsPackable>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Pinned: 1.7.*-unstable ref assets dropped net48, which breaks restore. -->
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
+    <PackageReference Include="Lib.Harmony.Ref" Version="*-*" />
+    <PackageReference Include="Fody" Version="6.9.2" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference
+      Include="$(ProjectRoot)\Source\FlexVerse.SourceGenerators\FlexVerse.SourceGenerators.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+    />
+    <ProjectReference
+      Include="$(ProjectRoot)\Source\FlexVerse.PropertyWeaver.Fody\FlexVerse.PropertyWeaver.Fody.csproj"
+      ReferenceOutputAssembly="false"
+    />
+  </ItemGroup>
+  <PropertyGroup>
+    <WeaverConfiguration>
+      <Weavers>
+        <FlexVerse.PropertyWeaver />
+      </Weavers>
+    </WeaverConfiguration>
+  </PropertyGroup>
+  <ItemGroup>
+    <WeaverFiles Include="$(ProjectRoot)\Source\FlexVerse.PropertyWeaver.Fody\bin\$(Configuration)\netstandard2.0\FlexVerse.PropertyWeaver.Fody.dll" />
+  </ItemGroup>
+  <!-- FlexVerse ships as a mod (framework dependency, Harmony-style): assemblies
+       land via DeployToModFolder ($(ModName)), the About.xml completes the mod. -->
+  <Target Name="DeployFrameworkMod" AfterTargets="Build">
+    <Copy
+      SourceFiles="$(MSBuildThisFileDirectory)About\About.xml"
+      DestinationFolder="$(ModsDir)$(ModName)\About\"
+      SkipUnchangedFiles="true"
+    />
+  </Target>
+</Project>

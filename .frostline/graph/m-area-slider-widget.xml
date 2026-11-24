@@ -1,0 +1,31 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-AREA-SLIDER-WIDGET>
+  <Purpose>Controlled two-axis slider drawing a value handle and translating transformed pointer drags into owner-authoritative Value proposals.</Purpose>
+  <Scope>
+    <SCP-IN-001>AreaSlider Value, XRange, YRange, OnValueChange, Disabled, Tooltip, Label and LabelColor.</SCP-IN-001>
+    <SCP-IN-002>Local-coordinate drag mapping, clamp and labeled handle drawing.</SCP-IN-002>
+    <SCP-OUT-001>Global pointer capture, event dispatch and layout snapshots — owned by existing runtime modules.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>MouseDown starts own drag only when enabled, left-button and inside local layout bounds after TransformService.TryToLocal.</REQ-001>
+    <REQ-002>During active drag, mouse positions normalize independently to XRange and reversed YRange, clamped to [0,1] before interpolation.</REQ-002>
+    <REQ-003>Proposals call OnValueChange only when enabled and either component differs from authoritative Value; the component never writes Value itself.</REQ-003>
+    <REQ-004>Drag state is local to the widget instance and is cleared on disabled rendering, mouse release, leave and unmount.</REQ-004>
+    <REQ-005>Default preferred layout is 100 by 100; explicitly supplied dimensions and Flexbox constraints are retained.</REQ-005>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Vector2 Value, XRange/YRange, enabled state and FlexEvent mouse input.</IN-001></Inputs>
+    <Outputs><OUT-001>Proposed Vector2 through OnValueChange.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Native drawing, local drag-state mutation and changed-input callback.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `AreaSlider` : `Widget`
+* `AreaSlider.{Value|XRange|YRange|OnValueChange|Disabled|Tooltip|Label|LabelColor}`
+* `AreaSlider.OnGUI` -> `Widgets.DrawBoxSolid` + `Widgets.Label` + `GUI.DrawTexture`
+* `AreaSlider.OnMouseDown` + `AreaSlider.OnMouseDrag` -> `TransformService.TryToLocal`
+* `AreaSlider.OnMouseDrag` -> `AreaSlider.ProposeValue` => `AreaSlider.OnValueChange`
+* `AreaSlider.OnMouseUp` + `AreaSlider.OnMouseLeave` + `AreaSlider.OnUnmount` => `AreaSlider._isDragging`
+]]>
+  </Codemap>
+</M-AREA-SLIDER-WIDGET>

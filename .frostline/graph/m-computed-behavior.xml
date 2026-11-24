@@ -1,0 +1,59 @@
+<!-- parents: @.frostline/graph/ss-behavior-composites.xml -->
+<M-COMPUTED-BEHAVIOR>
+  <Purpose>Reactive derived Behavior whose Value is lazily computed and memoized from existing Behavior dependencies; invalidation has its own synchronous lifecycle, independent of when Value is read.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>ComputedBehavior&lt;TResult&gt;: dependency references, cache validity, lazy evaluation, invalidation lifecycle, polymorphic state handoff, cloning and semantic equality.</SCP-IN-001>
+    <SCP-IN-002>Computed.Select and Group.Combine: typed authoring surfaces for one or multiple dependencies.</SCP-IN-002>
+    <SCP-OUT-001>Activation, ticking, ownership or reset of dependency instances — delegated to their owners.</SCP-OUT-001>
+    <SCP-OUT-002>Dependency OnUpdate correctness — guaranteed by each concrete dependency Behavior contract.</SCP-OUT-002>
+  </Scope>
+
+  <Requirements>
+    <REQ-001><![CDATA[ComputedBehavior<TResult> derives from Behavior<TResult>; no separate value or lifecycle hierarchy is introduced.]]></REQ-001>
+    <REQ-002>The supplied computation is pure and reads dependency Value properties; it produces the derived result without side effects.</REQ-002>
+    <REQ-003>Value computes only when its cache is dirty and is read; successful evaluation caches the result and marks the cache clean. Clean reads reuse the cached result without re-evaluation.</REQ-003>
+    <REQ-004>Explicit Value assignment is accepted and stored as a clean cached override until the next invalidation; the next computation can replace that assignment.</REQ-004>
+    <REQ-005>Target is independently assignable passive state: it does not drive computation, trigger execution or provide an implicit fallback for errors.</REQ-005>
+    <REQ-006>Dependencies are borrowed existing Behavior instances. Computed subscribes to their OnUpdate when activated and unsubscribes when reset, without activating, ticking or resetting them.</REQ-006>
+    <REQ-007>Activation is idempotent and raises OnActivate only. It discards any cache obtained before activation without emitting an initial OnStart, OnUpdate or OnComplete cycle.</REQ-007>
+    <REQ-008>While active, a dependency OnUpdate invalidates the cache only on a clean-to-dirty transition and emits one synchronous OnStart, OnUpdate(1f), OnComplete cycle. The transition never eagerly invokes the computation.</REQ-008>
+    <REQ-009>OnComplete signals the end of invalidation propagation, not the materialization of Value; the cache may remain dirty without a time limit. IsUpdating is true only during the synchronous event cycle, then false; State remains Active.</REQ-009>
+    <REQ-010>Further dependency events while already dirty produce no additional cycle. If an observer reads Value and a new clean-to-dirty transition occurs during event dispatch, its cycle is queued and delivered after the current OnComplete, never recursively.</REQ-010>
+    <REQ-011>Update(deltaTime) does not tick or recompute; repeated updates leave cache and lifecycle untouched.</REQ-011>
+    <REQ-012>UnionWith(source) transfers applicable typed Value/Target information while respecting explicit assignments and leaving the computed cache dirty so the next read derives its own result.</REQ-012>
+    <REQ-013>SemEquals compares computation delegates and dependency instance identities, plus applicable explicit typed configuration; cached evaluation history alone does not define identity.</REQ-013>
+    <REQ-014>Clone creates a separate computed instance and independent dirty cache with the same computation and shared dependency instances; Reset releases subscriptions and internal runtime state.</REQ-014>
+    <REQ-015>Exceptions from the computation remain observable and leave the cache dirty for a later retry. Recursive evaluation of a computed Value is rejected as a cyclic dependency.</REQ-015>
+    <REQ-016><![CDATA[Select<TIn,TOut>(Behavior<TIn>, Func<TIn,TOut>) creates one ComputedBehavior<TOut>; Group.Combine creates a ComputedBehavior<TResult> from multiple typed dependencies, with an untyped dependency-list overload for arbitrary arity.]]></REQ-016>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001><![CDATA[computer: Func<TResult> — pure computation invoked on demand.]]></IN-001>
+      <IN-002>dependencies: borrowed Behavior instances whose OnUpdate invalidates the computed cache.</IN-002>
+      <IN-003>source: Behavior — optional previous instance supplied to UnionWith.</IN-003>
+    </Inputs>
+    <Outputs>
+      <OUT-001><![CDATA[Value: TResult — cached derived result (or explicit temporary assignment).]]></OUT-001>
+      <OUT-002><![CDATA[Target: TResult — passive typed state independent of computation.]]></OUT-002>
+      <OUT-003>OnStart, OnUpdate(1f), OnComplete — synchronous invalidation lifecycle events after a clean-to-dirty transition.</OUT-003>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Subscribes to dependency OnUpdate while active; detaches subscriptions on Reset.</EFF-001>
+      <EFF-002>Notifies its observers of invalidation without computing Value.</EFF-002>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `ComputedBehavior<TResult>` : `Behavior<TResult>`
+* `Computed.Select<TIn,TOut>` -> `ComputedBehavior<TOut>`
+* `Group.Combine<T1,T2,TResult>` | `Group.Combine<T1,T2,T3,TResult>` | `Group.Combine<T1,T2,T3,T4,TResult>` | `Group.Combine<TResult>` -> `ComputedBehavior<TResult>`
+* `Behavior.OnUpdate` -> `ComputedBehavior<TResult>.OnUpdate`
+* `Behavior.OnUpdate` -> `ComputedBehavior<TResult>.OnStart` -> `ComputedBehavior<TResult>.OnUpdate` -> `ComputedBehavior<TResult>.OnComplete`
+* `ComputedBehavior<TResult>.Value` -> `Func<TResult>`
+* `ComputedBehavior<TResult>.Reset` -> `Behavior.Reset`
+]]>
+  </Codemap>
+</M-COMPUTED-BEHAVIOR>

@@ -1,0 +1,42 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-APPEARANCE-DRAWERS>
+  <Purpose>Reusable native IMGUI painting of individual widget surfaces, borders, rounded content images and outer shadows without child subtree compositing.</Purpose>
+  <Scope>
+    <SCP-IN-001>BackgroundDrawer, BorderDrawer, ShadowDrawer and ImageDrawer operations for individual widget surfaces.</SCP-IN-001>
+    <SCP-IN-002>Shadow and BackgroundSize drawing parameters, CornerRadii normalization, BorderEdges and cached AppearanceMasks textures in Widgets/Drawers/.</SCP-IN-002>
+    <SCP-OUT-001>Descendant clipping: geometry is published by M-WIDGET-GEOMETRY and queried by M-CLIP-SERVICE; native execution belongs to WidgetRenderer and concrete widget contexts.</SCP-OUT-001>
+    <SCP-OUT-002>Shared mutable Style object, generic offscreen group renderer or stencil backend.</SCP-OUT-002>
+  </Scope>
+  <Requirements>
+    <REQ-001>View orchestrates ShadowDrawer, BackgroundDrawer and BorderDrawer for its decorative surface. Image reuses ImageDrawer for its own content; specialized text and input widgets do not invoke decorative drawers.</REQ-001>
+    <REQ-002>CornerRadii.Resolve honors explicit zero overrides and proportionally normalizes radii that exceed the surface bounds.</REQ-002>
+    <REQ-003>Image placement supports Cover, Contain, Stretch and OriginalSize with configurable normalized background position; content images may be rounded within their own surface.</REQ-003>
+    <REQ-004>AppearanceMasks caches a bounded number of native textures; FlexVerseRoot releases these shared masks on root destruction, not on widget unmount.</REQ-004>
+    <REQ-005>Surface alpha is expressed through Colors/textures; no group opacity or already-rendered subtree processing is provided.</REQ-005>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>Surface Rect, colors/textures, radii and shadow description; BorderDrawer also accepts the owner Widget to read calculated Flexbox border widths through WidgetEngine.GetNode.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Native IMGUI paint operations for the specified surface.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Draws through UnityEngine.GUI and lazily creates/caches Texture2D masks.</EFF-001>
+    </SideEffects>
+  </Contract>
+<Codemap>
+<![CDATA[
+
+* `BorderDrawer.GetBorder` -> `Widget.Engine` -> `WidgetEngine.GetNode` -> `Node.LayoutGetBorder` -> `BorderEdges`
+* `CornerRadii.Resolve` -> `CornerRadii`
+* `BackgroundDrawer.Draw` -> `AppearanceMasks.GetFill` + `ImageDrawer.Draw`
+* `ShadowDrawer.Draw` -> `AppearanceMasks.GetShadow`
+* `BorderDrawer.Draw` -> `AppearanceMasks.GetBorder`
+* `ImageDrawer.DrawContent` -> `ImageDrawer.Draw` -> `ImageDrawer.ResolveImagePlacement`
+* `ImageDrawer.ResolveImagePlacement` -> `BackgroundSize`
+* `ImageDrawer.Draw` -> `GUI.BeginGroup` + `GUI.DrawTextureWithTexCoords` + `GUI.EndGroup`
+* `FlexVerseRoot.OnDestroy` -> `AppearanceMasks.DisposeCaches`
+]]>
+  </Codemap>
+</M-APPEARANCE-DRAWERS>

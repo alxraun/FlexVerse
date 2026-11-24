@@ -1,0 +1,38 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-INHERITED-CONTEXT>
+  <Purpose>Inherited context propagation: register providers in the tree, resolve consumers to the nearest ancestor provider with shadowing, and rebind consumers through the generated _Update{Prop}FromAncestor seam.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>InheritedContextManager: provider registration, nearest-provider lookup, shadowing, consumer rebinding.</SCP-IN-001>
+    <SCP-OUT-001>Emission of the consumer seam — owned by M-WIDGET-EMITTER (shared symbol, no cross parents).</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Lookup resolves to the nearest ancestor provider and shadows outer providers per S-WIDGETS.REQ-003.</REQ-001>
+    <REQ-002>Consumer rebinding calls the generated Widget._Update{Prop}FromAncestor (M-WIDGET-EMITTER.REQ-002).</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>provider registration keyed by context type on a widget instance.</IN-001>
+      <IN-002>consumer widget with generated _Update{Prop}FromAncestor hook.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>resolved nearest context value for a consumer.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Mutates consumer widget properties during rebinding.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `InheritedContextManager(widgetTree)`
+* `InheritedContextManager.RegisterProvider(provider, propertyName, behavior)`
+* `InheritedContextManager.SubscribeConsumer(consumer, propertyName, typeName)`
+* `InheritedContextManager.ReleaseInheritedContext(widget, propertyName)`
+* `InheritedContextManager` -> `WidgetTree.TraverseAncestors` => nearest provider
+* `InheritedContextManager` -> `Widget._Update{Prop}FromAncestor` : shared generated symbol
+]]>
+  </Codemap>
+</M-INHERITED-CONTEXT>

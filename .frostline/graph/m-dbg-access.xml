@@ -1,0 +1,23 @@
+<!-- parents: @.frostline/graph/s-widget-debugger.xml -->
+<M-DBG-ACCESS>
+  <Purpose>Bridge discovered reactive properties to generated refs and public behavior parameters to read-only accessors.</Purpose>
+  <Scope>
+    <SCP-IN-001>AccessorFactory, IAccessor, RefAccessor and LambdaAccessor.</SCP-IN-001>
+    <SCP-OUT-001>Property editing and private-field reflection are excluded.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Base Widget slots use Widget.GetProperty; derived slots use their generated public property-ref constructors, cached per PropertyInfo.</REQ-001>
+    <REQ-002>RefAccessor reads the current slot through IPropertyRef.Get and retains its original category. Parameter accessors read public getters.</REQ-002>
+    <REQ-003>Dynamic discovery remains a reflection boundary because Widget.GetProperty is nonvirtual and generated Refs have no runtime enumeration API.</REQ-003>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Live Widget and discovered property metadata, or a Behavior parameter.</IN-001></Inputs>
+    <Outputs><OUT-001>IPropertyRef and named read-only IAccessor.</OUT-001></Outputs>
+    <SideEffects><None /></SideEffects>
+  </Contract>
+  <Codemap><![CDATA[
+* `AccessorFactory.GetRef` -> `Widget.GetProperty` | `ConstructorInfo.Invoke`
+* `RefAccessor.GetValue` -> `IPropertyRef.Get`
+* `DefaultAdapter.GetSlots` -> `AccessorFactory.Create` -> `LambdaAccessor.GetValue`
+]]></Codemap>
+</M-DBG-ACCESS>

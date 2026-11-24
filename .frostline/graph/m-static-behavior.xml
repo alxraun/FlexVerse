@@ -1,0 +1,39 @@
+<!-- parents: @.frostline/graph/ss-behavior-primitives.xml -->
+<M-STATIC-BEHAVIOR>
+  <Purpose>Immediate or delayed target assignment: capture a plain value as a behavior that reaches its target instantly or after a delay.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>StaticBehavior&lt;T&gt; target capture with optional delay window.</SCP-IN-001>
+    <SCP-IN-002>Static facade helper for authoring immediate values.</SCP-IN-001>
+    <SCP-OUT-001>Interpolation over time — owned by M-TWEEN-BEHAVIOR and M-SPRING-BEHAVIOR.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Activation is idempotent while active: repeated Activate leaves State Active and fires OnActivate exactly once.</REQ-001>
+    <REQ-002>While active, Update reports progress proportional to elapsed/Duration via OnUpdate and completes exactly once after Duration elapses.</REQ-002>
+    <REQ-003>With zero or negative Duration, Activate never enters the updating state and no progress is reported.</REQ-003>
+    <REQ-004>Reset returns the behavior to Inactive, clears Duration/elapsed and detaches all handlers.</REQ-004>
+    <REQ-005>SemEquals compares Target and Duration semantics; Clone yields an independent equal instance.</REQ-005>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>target: T — value to assign.</IN-001>
+      <IN-002>delay: float — seconds to wait before assignment (default 0).</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>State — Finished once the assignment has occurred.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `StaticBehavior<T>` : `Behavior<T>`
+* `StaticBehavior<T>.Update(deltaTime)` => delay <= 0 => value == target
+* `Static.Value<T>(...)` + `Static.Wait<T>(delay)` -> `StaticBehavior<T>`
+]]>
+  </Codemap>
+</M-STATIC-BEHAVIOR>

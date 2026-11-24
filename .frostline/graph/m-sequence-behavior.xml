@@ -1,0 +1,56 @@
+<!-- parents: @.frostline/graph/ss-behavior-composites.xml -->
+<M-SEQUENCE-BEHAVIOR>
+  <Purpose>Reactive sequential composition: execute child behaviors in order and adapt their intermediate targets to the composite Value and Target under the selected sequence strategy.</Purpose>
+
+  <Scope>
+    <SCP-IN-001><![CDATA[SequenceBehavior<T>: child ordering, advancement, value handoff, and composite lifecycle/progress reporting.]]></SCP-IN-001>
+    <SCP-IN-002>Group facade for composing behavior collections.</SCP-IN-002>
+    <SCP-IN-003>Built-in composite retargeting: resolve intermediate typed child targets from the authored targets, live Value, composite Target, and selected SequenceStrategy. This value-space geometry is part of the composite behavior, not an Explorer drawing feature.</SCP-IN-003>
+    <SCP-OUT-001>Parallel playback — owned by M-TIMELINE-BEHAVIOR.</SCP-OUT-001>
+    <SCP-OUT-002>Concrete child algorithms, including interpolation, easing, dependency computation, and effect callbacks — owned by the respective child behaviors.</SCP-OUT-002>
+    <SCP-OUT-003>Canvas rendering, screen coordinates, and application-specific interpretation or presentation transforms of the sequence output — owned by consumers.</SCP-OUT-003>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>The sequence advances when the current child reports completion through OnComplete, or immediately if activation leaves it not updating. Neither Value == Target nor a particular reported progress value is a universal child-completion test (SS-BEHAVIOR-COMPOSITES.REQ-001).</REQ-001>
+    <REQ-002>Squeeze/stretch redistribution preserves child relative durations when the chain is compressed.</REQ-002>
+    <REQ-003>Intermediate-target adaptation uses the authored targets, live Value, and composite Target under the selected SequenceStrategy. Collinearity, monotonic approach, and spatial shape preservation are not universal sequence invariants.</REQ-003>
+    <REQ-004>Geometry is recalculated before a restart replays children: ActivateNextChild must apply fresh results, never stale ones from the previous retarget.</REQ-004>
+    <REQ-005>Composite retargeting is a responsibility of SequenceBehavior: children can adapt to their individual targets, but the selected SequenceStrategy determines how a new composite Target is distributed among them. External helpers are optional compositions, not a prerequisite for built-in retargeting.</REQ-005>
+    <REQ-006>Typed children expose the inherited Value/Target assignment contract (M-BEHAVIOR.REQ-012), but may use an assignment for convergence, passive storage, or recomputation under their own contracts. Sequence does not inspect their concrete kind or internal configuration. Untyped children participate in ordering and lifecycle without contributing typed targets. Rejecting an inherited setter remains an implementation contract gap; not converging from it is not by itself a gap.</REQ-006>
+    <REQ-007>Strategy unity: strategy presets are configurations of one intermediate-target adaptation model, parameterized by Anchor and Elasticity. Parameter boundary values obey the same model as interior values. Restart independently controls replay policy.</REQ-007>
+    <REQ-008><![CDATA[Type independence: the adaptation model treats T as an opaque value and delegates value arithmetic, interpolation, and distance measurement to TypeUtils. Sequence must not inspect coordinates, recognize concrete value types, or introduce type-specific rotation, scaling, or shape reconstruction. Supported types are limited to those whose TypeUtils operations satisfy the model's required semantics.]]></REQ-008>
+    <REQ-009>Emergent effects: translation, straightening, and shape preservation must result from the shared model and the semantics of TypeUtils operations. Using TypeUtils is necessary but does not itself justify an algorithm: additional calculations must serve generic composite target distribution, not a desired drawing or application-specific result.</REQ-009>
+    <REQ-010>Terminal target invariant: whenever composite retargeting resolves a nonempty supported typed chain, its final typed child's resolved Target equals the composite Target, independently of Anchor, Elasticity, and Restart. These parameters govern intermediate-target adaptation; terminal equality is a common composition rule. Child execution remains subject to REQ-006.</REQ-010>
+    <REQ-011>Parameter continuity: with authored targets, live Value, and composite Target fixed, continuous changes of Anchor and Elasticity must produce continuous resolved intermediate targets wherever the underlying TypeUtils operations are continuous. Boundary handling may protect a degenerate calculation but must not introduce a preset-specific semantic discontinuity.</REQ-011>
+    <REQ-012>Retarget continuity: assigning a new composite Target preserves the current composite Value at the moment of assignment. Restart selects the execution position, not a reset of the value. Subsequent motion follows the selected child's behavior contract; directional or velocity continuity is not imposed by sequence composition.</REQ-012>
+    <REQ-013>Replay policy: with Restart enabled, retargeting resumes execution from the first child using freshly resolved targets. With Restart disabled, retargeting continues the current child and subsequent children without replaying completed predecessors.</REQ-013>
+    <REQ-014>Completed-chain adaptivity: completion does not disable retargeting. With Restart disabled, a completed supported target-convergent typed chain resumes through its last typed child toward the new composite Target, without replaying earlier children; a nonconvergent terminal child follows its own Target semantics rather than being required to move. With Restart enabled, the same first-child replay policy applies before and after completion.</REQ-014>
+    <REQ-015>Resuming or replaying an already active child uses its live adaptation contract; sequence retargeting does not reset that child or repeat its lifecycle activation.</REQ-015>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001><![CDATA[children: IEnumerable<Behavior> — ordered chain stages.]]></IN-001>
+      <IN-002><![CDATA[Value/Target: T — live composite value and desired composite destination, subject to M-BEHAVIOR.REQ-011.]]></IN-002>
+      <IN-003>Strategy: SequenceStrategy — intermediate-target adaptation and restart policy.</IN-003>
+    </Inputs>
+    <Outputs>
+      <OUT-001>value: T — value of the currently active child.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Activates and drives child behaviors as the chain advances; dispatches composite lifecycle and progress events.</EFF-001>
+      <EFF-002>Assigns the current typed child's Value and Target for handoff and adaptation, subject to the child's contract.</EFF-002>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `SequenceBehavior<T>` : `Behavior<T>`
+* `SequenceBehavior<T>.{Children|Value|Target|Strategy}`
+* `SequenceStrategy.{Proportional|FixedOffset|LastOnly}` + `SequenceStrategy.{Elasticity|Anchor|Restart}`
+* `SequenceBehavior<T>.Update(deltaTime)` -> `Behavior<T>.Update(deltaTime)`
+* `Group.Sequence<T>(behaviors)` -> `SequenceBehavior<T>`
+]]>
+  </Codemap>
+</M-SEQUENCE-BEHAVIOR>

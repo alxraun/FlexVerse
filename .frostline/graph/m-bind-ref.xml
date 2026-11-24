@@ -1,0 +1,37 @@
+<!-- parents: @.frostline/graph/ss-property-refs.xml -->
+<M-BIND-REF>
+  <Purpose>Ephemeral binding: subscribe to events on the behavior instance currently occupying a property slot, releasing when the binding is torn down.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>BindRef: acquire handler subscription on the current slot behavior.</SCP-IN-001>
+    <SCP-OUT-001>Following behavior replacement — owned by M-WATCH-REF.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>A BindRef never resubscribes on slot change; a replaced behavior's subscription is released with the binding.</REQ-001>
+    <REQ-002>BindRef attaches a strong handler independent of owner type; it unsubscribes on slot Changing or explicit owner cleanup via BehaviorRegistry.</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>slot: IPropertyRef — the property slot to bind to.</IN-001>
+      <IN-002>handler: Delegate — event handler attached to the current behavior.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>subscription registered in the registry under the binding owner.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Registers/releases subscriptions through M-BEHAVIOR-REGISTRY.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `BindRef` : `IPropertyRef` ref struct
+* `BindRef(propertyRef)` -> slot `Behavior` events
+* `BindRef.{OnUpdate|OnActivate|OnStart|OnComplete|OnReset}`
+* `BindRef` -> `BehaviorRegistry.RegisterSubscription` / `UnregisterSubscription`
+* `BindRef` != `WatchRef` : slot change
+]]>
+  </Codemap>
+</M-BIND-REF>

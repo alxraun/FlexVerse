@@ -1,0 +1,34 @@
+<!-- parents: @.frostline/graph/s-behaviors.xml -->
+<SS-BEHAVIOR-COMPOSITES>
+  <Purpose>Composite behavior strategies: ordered chains, piecewise keyframe interpolation, dependency-triggered effects, lazy computed values, and time-composed action playback.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>SequenceBehavior: ordered behavior chains with squeeze/stretch geometry resolution.</SCP-IN-001>
+    <SCP-IN-002>KeyframeBehavior: piecewise-linear interpolation over a keyframe list.</SCP-IN-002>
+    <SCP-IN-003>EffectBehavior: callback dispatch triggered by dependency behaviors.</SCP-IN-003>
+    <SCP-IN-004>TimelineBehavior: parallel/sequential action composition over time.</SCP-IN-004>
+    <SCP-IN-005>ComputedBehavior: derived values from borrowed dependency instances with lazy recomputation.</SCP-IN-005>
+    <SCP-OUT-001>Primitive interpolation math — reused from SS-BEHAVIOR-PRIMITIVES via composition.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Composites that drive child behaviors delegate each child's execution algorithm to that child. A composite owns its declared orchestration and adaptation policy, including child target distribution where specified, through the inherited public contracts.</PRIN-001>
+    <PRIN-002>Dependency-based compositions observe borrowed behaviors without taking ownership of their execution lifecycle; child-owning composites explicitly manage child execution.</PRIN-002>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>A sequence advances after the child emits OnComplete, or immediately when child activation finishes without entering IsUpdating. Advancement never relies on universal Value/Target equality or progress == 1.</REQ-001>
+    <REQ-002>Effect callbacks fire for configured events, not every tick.</REQ-002>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `SequenceBehavior<T>` + `KeyframeBehavior<T>` + `EffectBehavior` + `TimelineBehavior` + `ComputedBehavior<TResult>` : `Behavior`
+* `SequenceBehavior.Update` -> child `Behavior.Update` => next
+* `KeyframeBehavior.Update` -> segment interpolate => value
+* `EffectBehavior` -> dependency events -> callback
+* `Behavior.OnUpdate` -> `ComputedBehavior<TResult>.OnUpdate`
+* `ComputedBehavior<TResult>.Value` -> `Func<TResult>`
+* `TimelineBehavior` -> `Timeline` + `TimelinePlayer`]]>
+  </Codemap>
+</SS-BEHAVIOR-COMPOSITES>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <packageId>flexverse.framework</packageId>
+  <name>FlexVerse</name>
+  <author>Alx</author>
+  <supportedVersions>
+    <li>1.6</li>
+  </supportedVersions>
+  <description>FlexVerse is a framework that improves the ease of UI development in RimWorld.</description>
+</ModMetaData>

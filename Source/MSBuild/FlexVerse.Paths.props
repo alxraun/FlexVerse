@@ -1,0 +1,8 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <PropertyGroup>
+    <ProjectRoot>$(MSBuildThisFileDirectory)..\..\</ProjectRoot>
+    <NuGetLocalDir>$(ProjectRoot).cache\pkg\nupkgs\</NuGetLocalDir>
+    <ModsDir>$(ProjectRoot)Mods\</ModsDir>
+  </PropertyGroup>
+</Project>

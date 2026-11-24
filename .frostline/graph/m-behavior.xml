@@ -1,0 +1,59 @@
+<!-- parents: @.frostline/graph/s-behaviors.xml -->
+<M-BEHAVIOR>
+  <Purpose>Base abstract contract for all behaviors: lifecycle state machine, typed value/target state, change events, reset and union semantics, plus the runtime type coercion helpers.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Behavior and Behavior&lt;T&gt; abstract classes: Activate/Update/UnionWith/SemEquals/Reset.</SCP-IN-001>
+    <SCP-IN-002>Lifecycle states (Inactive/Active) with IsUpdating as the separate execution flag: completion is idle stability (Active + IsUpdating == false), not a state transition; IsUpdating guards nested mutation during dispatch.</SCP-IN-002>
+    <SCP-IN-003>NullBehavior as the canonical empty behavior.</SCP-IN-003>
+    <SCP-IN-004>TypeUtils: type conversion/compatibility used by union and coercion paths.</SCP-IN-004>
+    <SCP-OUT-001>Concrete interpolation strategies — owned by SS-BEHAVIOR-PRIMITIVES and SS-BEHAVIOR-COMPOSITES.</SCP-OUT-001>
+    <SCP-OUT-002>Tick scheduling and ownership — owned by SS-RUNTIME-SERVICES.</SCP-OUT-002>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Update is never reentrant: IsUpdating guards nested mutation during event dispatch.</REQ-001>
+    <REQ-002>UnionWith(source) offers the receiver the source's applicable state for polymorphic handoff. The receiver preserves compatible Value/Target information and continuity where meaningful under its own semantics, without a guarantee that every source field is copied.</REQ-002>
+    <REQ-003>SemEquals compares semantic content (value/target/parameters), not reference identity.</REQ-003>
+    <REQ-004>implicit operator Behavior&lt;T&gt;(T value) lifts a plain value into an immediate assignment.</REQ-004>
+    <REQ-005>While State == Inactive the behavior is a passive data holder: it consumes no update ticks and raises no events (FV-D-1).</REQ-005>
+    <REQ-006>State == Active means the behavior has been activated and may participate in execution or react to dependencies; it does not itself require continuous tick subscription or IsUpdating == true (FV-D-2).</REQ-006>
+    <REQ-007>For target-convergent behaviors, Target is intent (desired state) and Value is actuality (current state), with execution governed by their convergence strategy (FV-D-3). All typed behaviors retain the same Value/Target accessors, but nonconvergent implementations may use them as stored or derived state with explicitly defined semantics.</REQ-007>
+    <REQ-008>Convergence-driven behaviors update Value toward Target according to their concrete execution and completion criteria (FV-D-4, FV-D-5). Value/Target equality or inequality alone does not universally determine IsUpdating or completion. Completion leaves State == Active and IsUpdating == false; nonconvergent behaviors define completion without reference to Value == Target.</REQ-008>
+    <REQ-009>For behaviors with live trajectory adaptation, Value/Target mutation while Active adapts execution under the concrete behavior strategy, including after completion, without implicitly resetting its lifecycle (FV-D-7). A composite may explicitly choose a replay policy. Behaviors without a trajectory may instead retain or recompute assigned state; no universal motion is required.</REQ-009>
+    <REQ-010>Reset is destruction for pooling: State returns to Inactive, runtime data and user configuration are cleaned up; Reset is idempotent (FV-D-8). Replay after Reset is not guaranteed — owners rebuild or re-configure behaviors.</REQ-010>
+    <REQ-011>Retarget adaptivity for target-driven behaviors: changing Target adapts the live trajectory toward the new desired state under the same behavior semantics and selected strategy, without implicitly substituting a different behavioral rule. This preserves the governing principle, not necessarily the previous trajectory, elapsed progress, duration, or spatial shape; those guarantees belong to concrete contracts. Behaviors with nonconvergent semantics need not invent a trajectory in response to Target assignment.</REQ-011>
+    <REQ-012><![CDATA[Typed mutation: every Behavior<T> exposes assignable Value and Target before activation, while Active, and after completion. For trajectory-driven implementations, Value represents current state and Target normally expresses desired state; assignments adapt execution as defined by the concrete strategy. Other implementations may store either assignment for handoff or later replace it through computation. Both setters remain callable, but neither convergence nor immediate preservation of an assigned value is a universal guarantee; concrete consequences follow S-BEHAVIORS.REQ-004 and S-BEHAVIORS.REQ-006.]]></REQ-012>
+
+    <REQ-013>OnComplete is raised when an active updating cycle ends via StopUpdating, including explicit Stop or destructive Reset; it is the signal used by BehaviorUpdater to unsubscribe, not a universal assertion of successful business-level or Timeline action completion.</REQ-013>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>deltaTime: float — frame delta passed by the updater.</IN-001>
+      <IN-002>source: Behavior — predecessor whose applicable state is considered by UnionWith.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>State: Lifecycle — current lifecycle position, observable by owners.</OUT-001>
+      <OUT-002>value/target: T — universally exposed typed properties; current/destination semantics apply to target-convergent behaviors.</OUT-002>
+      <OUT-003>bool from SemEquals — semantic equality verdict.</OUT-003>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Raises change/finish events on the behavior instance.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `Behavior` -> `Behavior<T>` -> concrete `*Behavior`
+* `Behavior.State` : `Lifecycle` + `Behavior.IsUpdating`
+* `Behavior.Activate` + `Behavior.Update(deltaTime)` + `Behavior.Reset`
+* `Behavior.StartUpdating` + `Behavior.StopUpdating`
+* `StopUpdating` => `IsUpdating == false` && `State == Active` [idle stability]
+* `Behavior<T>.UnionWith(source)` + `Behavior<T>.SemEquals(other)` + `Behavior<T>.Clone` + `Behavior<T>.CloneUntyped`
+* `Behavior<T>.implicit(T value)` => `Behavior<T>` lift
+* `NullBehavior` : `Behavior`
+* `TypeUtils` -> `Behavior<T>.UnionWith` : type coercion
+]]>
+  </Codemap>
+</M-BEHAVIOR>

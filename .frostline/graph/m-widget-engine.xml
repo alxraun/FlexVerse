@@ -1,0 +1,45 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-WIDGET-ENGINE>
+  <Purpose>Per-context UI orchestrator and facade exposing tree, layout and geometry data for widget integration, extensions and diagnostics.</Purpose>
+  <Scope>
+    <SCP-IN-001>ProcessUI orchestration, lifecycle, signal posting and facade queries, including direct Flexbox Node access through GetNode.</SCP-IN-001>
+    <SCP-IN-002>WidgetReconciler, WidgetSignalQueue, WidgetLayoutCalculator and WidgetRenderer.</SCP-IN-002>
+    <SCP-IN-003>Engine-owned geometry builder/snapshot, read-only transform and clip services, hit tester and FocusManager lifetimes.</SCP-IN-003>
+    <SCP-OUT-001>Geometry construction belongs to M-WIDGET-GEOMETRY; coordinate and clip queries belong to M-TRANSFORM-SERVICE and M-CLIP-SERVICE; pointer targeting belongs to M-FLEX-EVENTS.</SCP-OUT-001>
+    <SCP-OUT-002>Native event bubbling and focus registration internals — owned by M-FLEX-EVENTS and M-FOCUS-MANAGER.</SCP-OUT-002>
+  </Scope>
+  <Requirements>
+    <REQ-001>ProcessUI dispatches native input using the previous geometry snapshot, reconciles root and rect changes, consumes the signal queue once, calculates layout when dirty and captures geometry/clips once before render.</REQ-001>
+    <REQ-002>DidLayoutCalculationHappenThisCycle reports whether layout ran in the current ProcessUI call.</REQ-002>
+    <REQ-003>Key is an immutable non-blank string; the parameterless constructor generates an auto:GUID key.</REQ-003>
+    <REQ-004>Shutdown is idempotent and safely tears down owned widget resources.</REQ-004>
+    <REQ-005>WidgetRenderer consumes snapshot paint order and owns GUI.matrix scopes, standard child clipping and render orchestration through paired widget hooks and explicit ChildrenGuiSpace results.</REQ-005>
+    <REQ-006>Native child-transform changes during rendering request a geometry rebuild from the engine; renderer never computes layout.</REQ-006>
+    <REQ-007>Consumed signals execute their Action and mark layout dirty only while their non-null Source remains mounted in this engine; signals with no Source remain engine-scoped. The queue is drained once before the conditional layout pass.</REQ-007>
+    <REQ-008>GetNode is an explicit integration and diagnostic escape hatch; it exposes the actual Flexbox node rather than an independent copy or replacement ownership model.</REQ-008>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>rootDefinition: Widget declarative tree.</IN-001>
+      <IN-002>availableRect: host Rect and current native Unity Event.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Tree instances, direct Flexbox Node access, layout results, shared geometry snapshot, query services and DidLayoutCalculationHappenThisCycle.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Reconciles instance tree, dispatches input and issues native IMGUI draw calls.</EFF-001>
+    </SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `WidgetEngine(key)` + `WidgetEngine()` -> `WidgetEngine.Key`
+* `WidgetEngine` -> `WidgetTree` + `WidgetReconciler` + `WidgetLayoutCalculator` + `WidgetGeometryBuilder` + `WidgetGeometrySnapshot` + `WidgetRenderer` + `WidgetSignalQueue` + `TransformService` + `ClipService` + `WidgetHitTester` + `FocusManager`
+* `WidgetEngine.ProcessUI(rootDefinition, availableRect)` -> `FocusManager.BeginFrame` -> `FlexEventDispatcher.ProcessEvents` -> `WidgetReconciler.ReconcileRootInstance` -> `WidgetEngine.ConsumeSignals` -> `WidgetEngine.CalculateLayoutIfDirty` -> `WidgetGeometryBuilder.Refresh` -> `WidgetRenderer.RenderInstanceTree` -> `FocusManager.EndFrame`
+* `WidgetEngine.ReconcileChildren` + `WidgetEngine.Post` + `WidgetEngine.MarkNodeAsDirty` + `WidgetEngine.Shutdown`
+* `WidgetEngine.{GetParent|GetChildren|GetInstanceByKey|GetRoot|GetNode|GetLayoutResults}`
+* `WidgetRenderer.RenderInstanceTree` -> `WidgetRenderer.RenderInstanceRecursive` -> `WidgetRenderer.RenderWithChildren`
+* `WidgetRenderer.RenderInstanceRecursive` -> `WidgetGeometrySnapshot.TryGet`
+* `WidgetRenderer.RenderInstanceRecursive` -> `WidgetEngine.RefreshGeometry` -> `WidgetGeometryBuilder.Refresh`
+]]>
+  </Codemap>
+</M-WIDGET-ENGINE>

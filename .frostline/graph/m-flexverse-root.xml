@@ -1,0 +1,41 @@
+<!-- parents: @.frostline/graph/ss-runtime-services.xml -->
+<M-FLEXVERSE-ROOT>
+  <Purpose>Unity runtime host: the global FlexVerseRoot MonoBehaviour owning the registry and updater, created by the mod entry point and configured from mod settings.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>FlexVerseRoot: root object lifecycle, per-frame update pumping.</SCP-IN-001>
+    <SCP-IN-002>Mod entry (FlexVerseMod) and settings (FlexVerseSettings).</SCP-IN-002>
+    <SCP-IN-003>Shared generated texture cache teardown on root destruction.</SCP-IN-003>
+    <SCP-OUT-001>Registry/updater mechanics — owned by M-BEHAVIOR-REGISTRY and M-BEHAVIOR-UPDATER.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Exactly one root exists per session per SS-RUNTIME-SERVICES.REQ-001.</REQ-001>
+    <REQ-002>The root survives RimWorld scene loads without duplicating.</REQ-002>
+    <REQ-003>OnDestroy clears shared AppearanceMasks and GradientTextures caches only for the live root instance, not on individual Widget unmount.</REQ-003>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>Unity frame callbacks (Update) on the root object.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>static accessor to the live root and its services.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Creates a persistent GameObject in the Unity scene.</EFF-001>
+      <EFF-002>Destroys shared appearance and gradient textures during framework teardown.</EFF-002>
+    </SideEffects>
+  </Contract>
+
+<Codemap>
+<![CDATA[
+
+* `FlexVerseRoot` : `MonoBehaviour`
+* `FlexVerseRoot.Instance` -> `FlexVerseRoot.BehaviorRegistry` + `FlexVerseRoot.BehaviorUpdater`
+* `FlexVerseRoot.Update` -> `BehaviorUpdater.Update`
+* `FlexVerseRoot.OnDestroy` -> `AppearanceMasks.DisposeCaches` + `GradientTextures.ClearCache`
+* `FlexVerseMod` + `FlexVerseSettings` -> `FlexVerseRoot`
+]]>
+  </Codemap>
+</M-FLEXVERSE-ROOT>

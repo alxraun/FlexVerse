@@ -1,0 +1,39 @@
+<!-- parents: @.frostline/graph/ss-behavior-composites.xml -->
+<M-KEYFRAME-BEHAVIOR>
+  <Purpose>Piecewise-linear interpolation over an ordered keyframe list: map normalized time onto the segment between adjacent keyframes.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>KeyframeBehavior&lt;T&gt;: keyframe list, time normalization, segment interpolation.</SCP-IN-001>
+    <SCP-OUT-001>Nonlinear curves inside a segment — apply an easing via keyframe values instead.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Interpolation clamps at the first/last keyframe outside the time range.</REQ-001>
+    <REQ-002>Keyframes are evaluated in list order regardless of insertion gaps.</REQ-002>
+    <REQ-003><![CDATA[KeyframeBehavior<T> retains the public Value/Target assignment surface of M-BEHAVIOR.REQ-012, but owns the consequences under its keyframe-driven algorithm. Value is its computed current output; the Target assignment policy may retain state or affect keyframe execution as explicitly defined by this module. Callers and enclosing composites must not need to edit Keyframes just to assign a Value or Target; universal target convergence is not implied.]]></REQ-003>
+    <REQ-004>Target uses LastOnly semantics: assignment replaces only the last keyframe value, preserving all times, easing functions and intermediate values. It preserves current Value, elapsed time and segment position; an active nonempty behavior resumes updating when Target changes. After completion the next update applies the new terminal value and completes again.</REQ-004>
+    <REQ-005>An empty keyframe list stores assigned Target without creating a frame. A subsequently configured list receives the stored Target in its last frame. Without an explicit assignment, Target is the last frame value, or default for an empty list. Clone preserves explicit Target intent.</REQ-005>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>keyframes: ordered (time, value) list.</IN-001>
+      <IN-002>Value/Target: inherited typed assignment surface; Value may be superseded by interpolation; Target follows REQ-004 and REQ-005.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>value: T — segment-interpolated value each Update.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `KeyframeBehavior<T>` : `Behavior<T>`
+* `KeyframeBehavior<T>.{Keyframes|Duration|Value|Target}`
+* `KeyframeBehavior<T>.Update(deltaTime)` -> segment locate -> interpolate => value
+* `Animate.Keyframes<T>(...)` -> `KeyframeBehavior<T>`
+]]>
+  </Codemap>
+</M-KEYFRAME-BEHAVIOR>

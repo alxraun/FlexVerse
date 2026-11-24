@@ -1,0 +1,25 @@
+<!-- parents: @.frostline/graph/s-widget-debugger.xml -->
+<M-DBG-TRACK>
+  <Purpose>Observe live property changes and UI passes without depending on private engine or behavior implementations.</Purpose>
+  <Scope>
+    <SCP-IN-001>ProcessUI and Root.OnGUI hotkey hook, weak change timestamps and whole-engine isolation.</SCP-IN-001>
+    <SCP-OUT-001>Property subscriptions belong to WidgetInspector; engine discovery belongs to EngineRegistry.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>The FlexVerse instrumentation point is the public WidgetEngine.ProcessUI method. Private reconciliation methods and behavior lifecycle setters are never patched.</REQ-001>
+    <REQ-002>ChangeTracker retains weak object keys and calculates heat using the caller-supplied decay duration; nonpositive durations yield zero.</REQ-002>
+    <REQ-003>The inspector context and engines rooted in FlexTools widgets are isolated as whole trees, including descendants instantiated from framework types.</REQ-003>
+    <REQ-004>Root.OnGUI handles F12 before native windows can consume it, independently of engine activity; only the debugger hotkey is consumed.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>UI pass completion and property change/update notifications.</IN-001></Inputs>
+    <Outputs><OUT-001>Change heat and isolated-engine classification.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Invokes tool observation and the inspector window toggle.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap><![CDATA[
+* `Patch_WidgetEngine_Main.Postfix` -> `WidgetInspector.Observe`
+* `Patch_Root_OnGUI.Prefix` -> `WidgetInspector.ToggleWindow`
+* `ChangeTracker.RegisterChange` + `ChangeTracker.GetHeat` + `ChangeTracker.Clear`
+* `InspectorIsolation.IsIsolated` -> `WidgetEngine.Key` + `WidgetEngine.GetRoot`
+]]></Codemap>
+</M-DBG-TRACK>

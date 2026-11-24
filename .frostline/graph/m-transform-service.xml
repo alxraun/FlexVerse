@@ -1,0 +1,33 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-TRANSFORM-SERVICE>
+  <Purpose>Read-only coordinate conversion over the geometry snapshot published by the engine.</Purpose>
+  <Scope>
+    <SCP-IN-001>World, self, child and inverse matrix queries from WidgetGeometrySnapshot.</SCP-IN-001>
+    <SCP-IN-002>ToScreen, ToLocal and TryToLocal coordinate conversions.</SCP-IN-002>
+    <SCP-OUT-001>Layout computation — owned by M-WIDGET-ENGINE and SS-FLEXBOX.</SCP-OUT-001>
+    <SCP-OUT-002>Clip snapshot construction is owned by M-WIDGET-GEOMETRY; clip queries are owned by M-CLIP-SERVICE.</SCP-OUT-002>
+  </Scope>
+  <Requirements>
+    <REQ-001>Queries consume published geometry without rebuilding it or reading live widget Props.</REQ-001>
+    <REQ-002>TryToLocal rejects missing or singular geometry.</REQ-002>
+    <REQ-003>Pointer targeting is owned by WidgetHitTester in M-FLEX-EVENTS.</REQ-003>
+    <REQ-004>TransformService has no dependency on ClipService.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>WidgetGeometrySnapshot supplied by the engine.</IN-001>
+      <IN-002>Widget and local or screen point.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>World matrices, projected screen bounds and inverse local coordinates.</OUT-001>
+      <OUT-002>Conversion failure for missing or noninvertible geometry.</OUT-002>
+    </Outputs>
+    <SideEffects><None /></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `TransformService` -> `WidgetGeometrySnapshot.TryGet`
+* `TransformService.GetWorldMatrix` + `TransformService.ToScreen` + `TransformService.TryToLocal` + `TransformService.ToLocal`
+]]>
+</Codemap>
+</M-TRANSFORM-SERVICE>

@@ -1,0 +1,27 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-CHECKBOX-WIDGET>
+  <Purpose>Native single-boolean controlled checkbox reporting user-proposed changes without writing the externally owned Checked Behavior.</Purpose>
+  <Scope>
+    <SCP-IN-001>Checkbox.Checked, OnValueChange, Disabled and Tooltip Props.</SCP-IN-001>
+    <SCP-IN-002>Native checkbox square and its intrinsic measurement.</SCP-IN-002>
+    <SCP-OUT-001>Label text presentation or multi-choice group composition — owned by callers.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Checked is an externally authoritative Prop; a native toggle calls OnValueChange only when enabled and the proposed bool differs from Checked.Value.</REQ-001>
+    <REQ-002>Checkbox never assigns Checked itself, even when native Widgets.Checkbox mutates its temporary ref parameter.</REQ-002>
+    <REQ-003>Native Widgets.Checkbox respects Disabled; default intrinsic dimensions follow Widgets.CheckboxSize and Flexbox measure modes.</REQ-003>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Checked: bool or Behavior&lt;bool&gt;, Disabled and OnValueChange callback.</IN-001></Inputs>
+    <Outputs><OUT-001>Proposed new bool delivered via OnValueChange.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Calls OnValueChange for enabled changed input; never mutates external Checked.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `Checkbox` : `Widget`
+* `Checkbox.{Checked|OnValueChange|Disabled|Tooltip}`
+* `Checkbox.MeasureFunc` -> `Widgets.CheckboxSize`
+* `Checkbox.OnGUI` -> `Widgets.Checkbox` -> `Checkbox.ProposeChecked` => `Checkbox.OnValueChange`
+]]>
+  </Codemap>
+</M-CHECKBOX-WIDGET>

@@ -1,0 +1,10 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <Target Name="EnsureNuGetLocalDir" BeforeTargets="Restore;Build">
+    <Message
+      Text="Ensuring local NuGet source directory exists: $(NuGetLocalDir)"
+      Importance="High"
+    />
+    <MakeDir Directories="$(NuGetLocalDir)" />
+  </Target>
+</Project>

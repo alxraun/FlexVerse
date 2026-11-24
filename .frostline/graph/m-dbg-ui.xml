@@ -1,0 +1,28 @@
+<!-- parents: @.frostline/graph/s-widget-debugger.xml -->
+<M-DBG-UI>
+  <Purpose>Declarative FlexVerse inspector UI with context selection, hierarchy, property details and preferences.</Purpose>
+  <Scope>
+    <SCP-IN-001>InspectorApp, hierarchy/property/behavior views, header tabs and native settings controls.</SCP-IN-001>
+    <SCP-OUT-001>Snapshot capture and target observation belong to M-DBG-INSPECT.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>All UI uses FlexVerse widgets; scrollable components derive from ScrollView and decorative compositions use View.</REQ-001>
+    <REQ-002>Expanded rows, open member drawers, filters and active tab are instance State; target context and selection arrive as controlled Props.</REQ-002>
+    <REQ-003>Stable widget/property keys preserve UI identity across snapshot refreshes. Changing values are passed as reactive Props or computed projections instead of manual dirty/reconcile signals.</REQ-003>
+    <REQ-004>Preferences use native Checkbox and HorizontalSlider with OnValueChange; disabling heatmap disables its duration slider.</REQ-004>
+    <REQ-005>Empty registries display a useful prompt; self-inspection and invented behavior metadata are excluded.</REQ-005>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>DebugNode snapshots, context keys, selection, settings values and change callbacks.</IN-001></Inputs>
+    <Outputs><OUT-001>Inspector UI rendered by InspectorWindow through FVUI.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Reports selection/context changes and writes user preferences through controlled callbacks.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap><![CDATA[
+* `InspectorApp` -> `InspectorHeader` + `HierarchyTree` | `SettingsView` + `InspectorFooter`
+* `InspectorHeader` -> `InspectorTitleBar` + `InspectorTabBar` -> `InspectorTabButton`
+* `HierarchyTree` -> `HierarchyItem` + `HierarchyNodeProperties` -> `PropertyRow` -> `PropertyRowHeader` + `BehaviorItem`
+* `PropertyRowHeader` : `Button` -> `PropertyBadge` + `Label`
+* `SettingsView` -> `SettingsToggle` + `HorizontalSlider`
+* `SettingsToggle` -> `Checkbox`
+]]></Codemap>
+</M-DBG-UI>

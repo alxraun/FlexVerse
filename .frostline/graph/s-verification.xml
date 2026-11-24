@@ -1,0 +1,44 @@
+<!-- parents: @.frostline/graph/p-flexverse-tooling.xml -->
+<S-VERIFICATION>
+  <Purpose>Verification pipeline: staged execution from build and xunit tests through containerized RimWorld runs to evidence directories with machine-derived verdicts — the how of verification, never the truth claims.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Command Scripts/test (harness by name: xunit | pickle | all — `all` is the gate composition) with --profile local|ci, repeatable --with MOD, harness-owned positional subjects; linear stage ordering, zero mechanisms.</SCP-IN-001>
+    <SCP-IN-002>Game source adapters (local autodetect, CI steamcmd) with version freezing, selected by --profile.</SCP-IN-001>
+    <SCP-IN-003>Mod manager: mods.json registry (mod pins + base harness set) materialized into staging via channels github/workshop/workspace; --with attaches extras.</SCP-IN-001>
+    <SCP-IN-004>Docker image and container runs for the pickle harness; manual play is the sibling Scripts/play command.</SCP-IN-001>
+    <SCP-IN-005>Evidence: Player.log as primary source, report.json/diff.json derived, exit-code contract.</SCP-IN-001>
+    <SCP-OUT-001>What is proven — owned by the test suites themselves: M-XUNIT (offline), M-PICKLE (in-game), M-EXPLORER (manual/visual).</SCP-OUT-001>
+    <SCP-OUT-002>Build mechanics — owned by M-MSBUILD; M-DOTNET invokes dotnet build as a command.</SCP-OUT-001>
+    <SCP-OUT-003>Publication and deployment targets — owned by the future release commands; the gate never publishes.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>One gate command: `uv run Scripts/test all --profile local|ci [--with MOD] [FEATURE...]`; no parallel ad-hoc pipelines (P-FLEXVERSE-TOOLING.PRIN-004).</PRIN-001>
+    <PRIN-002>Verdicts derive only from grep-stable markers; silence is never green (P-FLEXVERSE-TOOLING.PRIN-002).</PRIN-002>
+    <PRIN-003>Agents read runs/latest/report.json first and dive into Player.log pointwise.</PRIN-003>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Exit codes: 0 pass/compatible, 1 fail/incompatible, 2 harness did not run.</REQ-001>
+    <REQ-002>A mod pin is downloaded exactly once into .cache/mods; workspace-channel mods are built by this repository and deployed into their cache slot.</REQ-002>
+    <REQ-003>Compat runs produce a differential verdict against the base run; mods.json optional knownNoise/expectedLog keys are subtracted.</REQ-003>
+    <REQ-004>Each run leaves a complete evidence directory: Player.log plus derived report.json (M-RUNS.REQ-003).</REQ-004>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `Scripts/test` -> `parse_args` -> `HARNESS{xunit|pickle|all}` -> `xunit_leg`/`pickle_leg` -> `Pipeline`
+* `make_product` -> `dotnet build -c Debug` (product + test mods; gate is Debug-only, cacheable by `tree_digest(Source/)`) ; `xunit_run` -> `dotnet test` : harness execution carries NO fingerprint (never skipped)
+* `game_pipeline(spec)` : shared game stages => `build_product` + `build_image` + `stage_game` + `stage_mods` + `fresh_run_dir` ; `test` adds `run_container` + `evidence`, `play` swaps the entrypoint
+* `stage_mods` fingerprint == spec_digest + `source_fingerprint()` => rebuilt assemblies always re-materialize into staging
+* `stage_local` | `stage_ci` <= `SOURCE_ADAPTERS[profile]` -> `.cache/game/RimWorld` + `GameInfo` ; `last_info()` => cached resume
+* `runs.compose(--with)` -> `materialize` => `staging/{run}/{Mods,appdata}` => `RunPlan`
+* `run_test(plan)` -> `Player.log` (docker run, entrypoint run-headless) ; `run_play(plan)` -> GUI run
+* `write_report` => `report.json` (schema flexverse.report/1) ; `diff_verdict` => `diff.json` ; `report_exit_code` => 0|1|2
+* `Pipeline` : linear stages, fingerprint resume — no dependency-graph machinery
+* `uv run Scripts/test all` : one gate command, laptop and CI alike
+* `Scripts/test {xunit|pickle}` : harness in isolation; xunit verdict = dotnet rc
+* `M-XUNIT` (Xunit/) + `M-PICKLE` (Pickle/) : the suites the harnesses drive ; `M-EXPLORER` : manual surface]]>
+  </Codemap>
+</S-VERIFICATION>

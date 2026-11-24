@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Runtime-only Verse types used by the headless widget fixtures.
+       Native drawing, input, font shaping and tooltip behavior remain unverified. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Assembly-CSharp</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <RootNamespace>Verse</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../UnityShim/UnityShim.csproj" />
+    <ProjectReference Include="../ImGuShim/ImGuShim.csproj" />
+    <ProjectReference Include="../TextRenderingShim/TextRenderingShim.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,41 @@
+<!-- parents: @.frostline/graph/ss-runtime-services.xml -->
+<M-BEHAVIOR-REGISTRY>
+  <Purpose>Reference and subscription tracking for behavior owners: ref-count behavior targets and keep a per-owner ledger of event subscriptions for bulk release.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>BehaviorRegistry: Increment/Decrement ref counting on behavior targets.</SCP-IN-001>
+    <SCP-IN-002>RegisterSubscription/UnregisterSubscription/UnregisterSubscriptions ledger keyed by (owner, key, handler).</SCP-IN-002>
+    <SCP-OUT-001>Time ticking — owned by M-BEHAVIOR-UPDATER.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Decrement to zero triggers target release exactly once.</REQ-001>
+    <REQ-002>UnregisterSubscriptions(owner) releases every handler the owner registered, in registration order.</REQ-002>
+    <REQ-003>Bind/Watch store strong event handlers until property replacement or explicit owner cleanup; registration identity distinguishes Bind/Watch and event kind.</REQ-003>
+    <REQ-004>ConditionalWeakTable tracks subscription records per owner but does not weaken publisher event handlers; Widget Unmount and FVP ReleaseFvp provide deterministic owner cleanup.</REQ-004>
+    <REQ-005>Re-registering the same (owner, key, handler) releases its previous registration before replacement.</REQ-005>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>target: object — behavior target being ref-counted.</IN-001>
+      <IN-002>owner/key/handler: subscription identity triple.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>bool from Decrement — whether the target was released.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Invokes release actions when subscriptions are unregistered.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `BehaviorRegistry.Decrement(target)` => refcount == 0 => release
+* `BehaviorRegistry.RegisterSubscription(owner, key, handler, release)`
+* `BehaviorRegistry.UnregisterSubscription(owner, key, handler)`
+* `BehaviorRegistry.UnregisterSubscriptions(owner)` => release(owner.handlers)
+* `BehaviorRegistry` <= `BindRef` + `WatchRef` + `WidgetTree`
+]]>
+  </Codemap>
+</M-BEHAVIOR-REGISTRY>

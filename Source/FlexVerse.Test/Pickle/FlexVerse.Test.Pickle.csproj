@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Test.Mod.props" />
+  <PropertyGroup>
+    <AssemblyName>FlexVerse.Test.Pickle</AssemblyName>
+    <OutputPath>$(DeployRoot)Assemblies/</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference
+      Include="RimWorks.Pickle.Ref"
+      Version="4.9.*"
+      ExcludeAssets="runtime"
+      PrivateAssets="all"
+    />
+    <FeatureFile Include="Features/**/*.feature" />
+  </ItemGroup>
+  <!-- Forward slashes throughout: raw backslashes inside Exec command strings
+       are literal characters on Linux and deploy to garbage filenames. The
+       Copy task normalizes separators, so it is the portable way to place
+       both the features and the steps-slot dll. -->
+  <Target Name="DeployPickle" AfterTargets="Build">
+    <Copy
+      SourceFiles="@(FeatureFile)"
+      DestinationFolder="$(DeployRoot)Pickle/Features/"
+      SkipUnchangedFiles="true"
+    />
+    <!-- Same dll, hardlinked into the Pickle steps slot (identity-unified at load time) -->
+    <Copy
+      SourceFiles="$(OutputPath)FlexVerse.Test.Pickle.dll"
+      DestinationFolder="$(DeployRoot)Pickle/Assemblies/"
+      UseHardlinksIfPossible="true"
+    />
+  </Target>
+</Project>

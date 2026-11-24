@@ -1,0 +1,28 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-LABEL-WIDGET>
+  <Purpose>Read-only text display with intrinsic measurement, wrapping, ellipsis and tooltips.</Purpose>
+  <Scope>
+    <SCP-IN-001>Label Content, Font, TextAlign, TextTransform, TextWrap, TextOverflow and Color.</SCP-IN-001>
+    <SCP-IN-002>Text measurement, overflow behavior and automatic or explicit Tooltip.</SCP-IN-002>
+    <SCP-OUT-001>Text editing, caret and IME — owned by M-TEXT-FIELD-WIDGET.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Intrinsic text measurement reflects font, transformed content and wrap; Flexbox owns external box constraints and edges.</REQ-001>
+    <REQ-002>Explicit newlines survive TextWrap settings; TextOverflow Ellipsis shortens unwrapped text and falls back to Clip for wrapped text.</REQ-002>
+    <REQ-003>Label draws only text within its content rectangle; general decorative surfaces are composed through View.</REQ-003>
+    <REQ-004>AutoTooltip and explicit Tooltip remain distinct presentation controls.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Content string, typography, layout and tooltip Props.</IN-001></Inputs>
+    <Outputs><OUT-001>Measured content Size and read-only native drawn text.</OUT-001></Outputs>
+    <SideEffects><None /></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `Label` : `Widget`
+* `Label.{Content|Font|TextAlign|TextTransform|TextWrap|TextOverflow|Color|Tooltip|AutoTooltip}`
+* `Label.MeasureFunc` -> `Text.CalcSize`
+* `Label.OnGUI` -> `Widgets.Label`
+]]>
+  </Codemap>
+</M-LABEL-WIDGET>

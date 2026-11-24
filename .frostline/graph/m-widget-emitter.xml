@@ -1,0 +1,62 @@
+<!-- parents: @.frostline/graph/ss-source-generators.xml -->
+<M-WIDGET-EMITTER>
+  <Purpose>Emission stage of the widget generator: orchestrate per-widget emitters to produce partial classes with property setters, lifecycle hooks, ref structures and inherited-context consumer updates.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Emitter orchestration over widget models (Emitters/*, WidgetEmitter).</SCP-IN-001>
+    <SCP-IN-002>Generator pipeline wiring and source-text production (WidgetPipeline, WidgetProvider).</SCP-IN-002>
+    <SCP-OUT-001>Analysis and diagnostics — owned by M-REACTIVITY-ANALYZER.</SCP-OUT-001>
+    <SCP-OUT-002>Widget model schema — owned by M-WIDGET-MODELS.</SCP-OUT-002>
+    <SCP-OUT-003>Generator entry point and shared code-building/Roslyn/string utilities — owned by M-SOURCE-GENERATORS-COMMON.</SCP-OUT-003>
+    <SCP-OUT-004>IL redirection of auto-properties — owned by M-PROPERTY-WEAVER.</SCP-OUT-004>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Generated widget code compiles clean per SS-SOURCE-GENERATORS.REQ-002.</REQ-001>
+    <REQ-002>For every inherited-context property the emitter generates Widget._Update{Prop}FromAncestor — the shared symbol with M-INHERITED-CONTEXT.</REQ-002>
+    <REQ-003>Setter emission produces the _Set{Prop}/_Get{Prop} counterparts the weaver redirects to (M-PROPERTY-WEAVER).</REQ-003>
+    <REQ-004>Widget member layout is derived from property names by fixed rules (SS-SOURCE-GENERATORS.REQ-003).</REQ-004>
+    <REQ-005>The synchronized setter switches over LifecycleState, short-circuits on SemEquals, and activates/releases behaviors on the instance side.</REQ-005>
+    <REQ-006>Definition initialization applies a shape-appropriate behavior default for every declared property kind.</REQ-006>
+    <REQ-007>ApplyPropsFromDefinition re-applies [Prop] members on update; [State] members are instance-owned and never re-applied.</REQ-007>
+    <REQ-008>InheritedContext emission registers providers, subscribes consumers by name+type, preserves field initializers and releases on deinit (shared seam with M-INHERITED-CONTEXT).</REQ-008>
+    <REQ-009>Reactivity flags wire ReconcileChildren/MarkNodeAsDirty signals through Engine.Post; ordinary non-layout Props with absent flags emit no signals. Base Widget layout Props always apply their current Behavior.Value to Flexbox on assignment and OnUpdate.</REQ-009>
+    <REQ-010>The Refs member emitter generates an explicit public string indexer `IPropertyRef this[string key]` on the widget's generated Refs struct/class.</REQ-010>
+    <REQ-011>The generated `Refs[string key]` indexer uses an unallocated string switch over all visible local and inherited reactive property names, returning the corresponding IPropertyRef field, or null if the key is unrecognized.</REQ-011>
+    <REQ-012>WidgetEmitter handles baseline [FVP] properties via its Fvp member emitter and includes them in Definition/Instance lifecycle, initialization, clone, release and unified Refs/Bind/Watch, without a second generated FVP pipeline for the same class.</REQ-012>
+    <REQ-013>Fvp/Prop/State/InheritedContext explicitly emit their property fields, getters and complete setters, keeping specialized engine and context effects local to each emitter.</REQ-013>
+    <REQ-014>Overrides inherit the reactive category of their base property when not explicitly annotated, reuse base slot storage and expose adapters that dispatch through the public override.</REQ-014>
+    <REQ-015>ReleaseBehaviors clears each populated owned FVP/Prop/State slot with Changing and Changed before releasing the Behavior, allowing IPropertyRef observers to detect teardown before a Reset-triggered OnComplete.</REQ-015>
+    <REQ-016>LayoutProperties maps only exact reserved names of base Widget slots to Flexbox operations. PropertyModel.SlotOwner preserves declaration identity through the Roslyn override chain; hidden user slots and decorative prefixes receive no layout route. Internal Flexbox Style types remain unchanged.</REQ-016>
+    <REQ-017>Prop emits reserved layout slots through a separate Style signal block preserving the original assignment/OnUpdate FIFO actions. Ordinary Props retain their original reactivity-flag path; Behavior handlers retain the original Reset-based cleanup.</REQ-017>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>widget models: schema owned by M-WIDGET-MODELS.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>generated C# partial classes added to the compilation.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `WidgetPipeline.Run(compilation)` -> `WidgetModel` + `Diagnostic`
+* `WidgetProvider.CreatePipeline` -> `WidgetProvider.IsWidget`
+* `WidgetEmitter.Emit(WidgetModel)` => generated `.g.cs`
+* `IWidgetMemberEmitter.Emit` -> `ActivateBehavior` | `ApplyPropsFromDefinition` | `BindRefs` | `Clone` | `CloneMembersFromDefinition` | `DeinitInheritedContext` | `InitInheritedContext` | `InitMembersFromCreation` | `InitMembersFromDefinition` | `Fvp` | `Prop` | `Refs` | `ReleaseBehavior` | `ReleaseBehaviors` | `State` | `WatchRefs`
+* `Prop` -> `LayoutProperties.GetRoute` -> `StyleLogic.GenerateStyleUpdate`
+* `WidgetEmitter` -> `Widget._Get{Prop}` / `Widget._Set{Prop}` => `ModuleWeaver.Execute`
+* `{Fvp|Prop|State|InheritedContext}.EmitProperty` -> `EmitGetter` + `EmitSetter`
+* `Refs.Emit` -> `Refs.EmitPropertyRefStruct`
+* `WidgetTree.RemoveInstance` -> `ReleaseBehaviors` + `BehaviorRegistry.UnregisterSubscriptions`
+* `Emitters/InheritedContext` -> `Widget._Update{Prop}FromAncestor` => `InheritedContextManager`
+* `Emitters/Refs` -> `Refs` struct -> `IPropertyRef this[string key]` indexer
+* `WidgetModel` : input
+]]>
+  </Codemap>
+</M-WIDGET-EMITTER>

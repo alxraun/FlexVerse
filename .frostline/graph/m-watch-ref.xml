@@ -1,0 +1,36 @@
+<!-- parents: @.frostline/graph/ss-property-refs.xml -->
+<M-WATCH-REF>
+  <Purpose>Persistent slot watching: track a property slot itself and automatically resubscribe handlers whenever the behavior instance in the slot is replaced.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>WatchRef: slot change observation, unsubscribe-old + subscribe-new.</SCP-IN-001>
+    <SCP-OUT-001>One-shot binding to the current instance — owned by M-BIND-REF.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Slot replacement releases the old subscription before acquiring the new one per SS-PROPERTY-REFS.REQ-001 and S-RUNTIME-PLATFORM.REQ-003.</REQ-001>
+    <REQ-002>WatchRef uses strong handlers independent of owner type; rebinding follows Changed and explicit owner cleanup releases the tracked registration.</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+    <IN-001>slot: IPropertyRef — the property slot being watched.</IN-001>
+    <IN-002>handler: Delegate — reattached on every slot change.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>current subscription state mirroring the live slot behavior.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Registers/releases subscriptions through M-BEHAVIOR-REGISTRY on each change.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `WatchRef` : `IPropertyRef` ref struct
+* `WatchRef(propertyRef)` -> slot change -> unsubscribe old + subscribe new
+* `WatchRef.{OnUpdate|OnActivate|OnStart|OnComplete|OnReset}`
+* `WatchRef` -> `BehaviorRegistry.RegisterSubscription` / `UnregisterSubscription`
+]]>
+  </Codemap>
+</M-WATCH-REF>

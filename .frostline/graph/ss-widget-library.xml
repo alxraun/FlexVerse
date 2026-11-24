@@ -1,0 +1,41 @@
+<!-- parents: @.frostline/graph/s-widgets.xml -->
+<SS-WIDGET-LIBRARY>
+  <Purpose>Concrete declarative UI widgets and shared native IMGUI appearance services: layout containers, display surfaces and controlled input controls.</Purpose>
+  <Scope>
+    <SCP-IN-001>View, ScrollView and CanvasView: visual container, native scrolling, viewport pan and zoom.</SCP-IN-001>
+    <SCP-IN-002>Label and Image: intrinsic content measurement and rendering, with optional own-image corner radii on Image.</SCP-IN-002>
+    <SCP-IN-003>Button and controlled Checkbox, TextField, HorizontalSlider and AreaSlider.</SCP-IN-003>
+    <SCP-IN-004>Widgets/Drawers/: shared background, border, shadow and image operations with their drawing parameters, geometry helpers and masks.</SCP-IN-004>
+    <SCP-IN-005>GradientTextures: texture factory providing linear, radial and conic gradients.</SCP-IN-005>
+    <SCP-OUT-001>Base Widget runtime, geometry, clipping and dispatch — owned by SS-WIDGET-RUNTIME.</SCP-OUT-001>
+    <SCP-OUT-002>Offscreen group composition and replacement graphics backends.</SCP-OUT-002>
+  </Scope>
+  <Principles>
+    <PRIN-001>General background images/colors, painted borders and outer shadows belong to View. Label, Button, TextField and Image compose with View instead of repeating its surface Props.</PRIN-001>
+    <PRIN-002>Native controls remain native when required for editing and RimWorld interaction; wrapping is not a requirement to replace every Verse.Widgets call.</PRIN-002>
+    <PRIN-003>Controlled value and checked Props are owner-authoritative; user gestures propose changes via OnValueChange.</PRIN-003>
+    <PRIN-004>Appearance properties are flat Props, not nested Style objects; shared drawers are implementation helpers, not widget superclasses.</PRIN-004>
+  </Principles>
+  <Requirements>
+    <REQ-001>All library widgets participate in the common Widget layout, input, render and lifecycle hooks.</REQ-001>
+    <REQ-002>Disabled controls do not emit value changes, submit/cancel or button actions; native focus/editing is retained for enabled text controls.</REQ-002>
+    <REQ-003>View uses the shared appearance drawers for decoration; Image uses ImageDrawer only for its own texture. Button and TextField can suppress their stock native backgrounds when composed inside View.</REQ-003>
+  </Requirements>
+  <Codemap>
+<![CDATA[
+* `View` + `ScrollView` + `CanvasView` + `Button` + `Checkbox` + `TextField` + `HorizontalSlider` + `AreaSlider` + `Label` + `Image` : `Widget`
+* `WidgetGeometryBuilder.Refresh` -> `Widget.GetChildrenMatrix` -> `ScrollView.GetChildrenTransform` | `CanvasView.GetChildrenTransform`
+* `ScrollView.BeginChildrenGUI` -> `Widgets.BeginScrollView`
+* `CanvasView.OnScrollWheel` -> `CanvasView.Zoom` + `CanvasView.Pan`
+* `View.OnGUI` -> `ShadowDrawer.Draw` + `BackgroundDrawer.Draw` + `BorderDrawer.Draw`
+* `Image.OnGUI` -> `ImageDrawer.DrawContent`
+* `Button.OnGUI` -> `Widgets.ButtonText`
+* `TextField.OnGUI` -> `GUI.TextField`
+* `GradientTextures.Linear` | `GradientTextures.Radial` | `GradientTextures.Conic` -> `Texture2D`
+* `Checkbox.OnGUI` -> `Checkbox.OnValueChange`
+* `TextField.OnGUI` -> `TextField.OnValueChange`
+* `HorizontalSlider.OnGUI` -> `HorizontalSlider.OnValueChange`
+* `AreaSlider.OnMouseDrag` -> `AreaSlider.OnValueChange`
+]]>
+  </Codemap>
+</SS-WIDGET-LIBRARY>

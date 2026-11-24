@@ -1,0 +1,29 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-BUTTON-WIDGET>
+  <Purpose>Native RimWorld text button with a single action Prop and optional stock native background.</Purpose>
+  <Scope>
+    <SCP-IN-001>Button Label, Font, TextAlign, Color, DrawButtonBackground, Disabled, Tooltip and OnClick.</SCP-IN-001>
+    <SCP-IN-002>Stock native background toggle through DrawButtonBackground; custom decoration is composed through View.</SCP-IN-002>
+    <SCP-OUT-001>Global event routing and pointer capture — owned by M-FLEX-EVENTS and game IMGUI.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Button.OnClick is the single action Prop; its OnMouseUp hook remains independent of native Widgets.ButtonText and the FlexEventDispatcher routing machinery.</REQ-001>
+    <REQ-002>Disabled suppresses the OnClick action and disables native ButtonText activation.</REQ-002>
+    <REQ-003>Widgets.ButtonText retains native control presentation. DrawButtonBackground false permits an enclosing View to supply the decorative surface.</REQ-003>
+    <REQ-004>Intrinsic Button measure uses label font metrics and internal padding, respecting imposed width/height modes.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Button label, OnClick action, Disabled and appearance Props.</IN-001></Inputs>
+    <Outputs><OUT-001>Native drawn button content and optional click action notification.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Native IMGUI drawing and action invocation via OnMouseUp when enabled.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `Button` : `Widget`
+* `Button.{Label|OnClick|Disabled|DrawButtonBackground|Font|TextAlign|Color|Tooltip}`
+* `Button.MeasureFunc` -> `Text.CalcSize`
+* `Button.OnGUI` -> `Widgets.ButtonText`
+* `Button.OnMouseUp` => `Button.OnClick`
+]]>
+  </Codemap>
+</M-BUTTON-WIDGET>

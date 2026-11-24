@@ -1,0 +1,10 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <PropertyGroup>
+    <MSBuildDir>$(MSBuildThisFileDirectory)MSBuild\</MSBuildDir>
+  </PropertyGroup>
+  <Import Project="$(MSBuildDir)FlexVerse.Paths.props" />
+  <Import Project="$(MSBuildDir)FlexVerse.PackageMetadata.props" />
+  <Import Project="$(MSBuildDir)FlexVerse.Compiler.props" />
+  <Import Project="$(MSBuildDir)FlexVerse.CSharpier.props" />
+</Project>

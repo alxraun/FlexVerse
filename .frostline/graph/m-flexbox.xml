@@ -1,0 +1,45 @@
+<!-- parents: @.frostline/graph/ss-flexbox.xml -->
+<M-FLEXBOX>
+  <Purpose>Dependency-free C# port of the Yoga Flexbox layout engine: compute node measurements from styles over the full box model.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Flex calculation entry points: CalculateLayout with width/height modes.</SCP-IN-001>
+    <SCP-IN-002>Node/Style data model, default node creation, style copy, reset.</SCP-IN-001>
+    <SCP-IN-003>Precision helpers: FloatsEqual, RoundValueToPixelGrid.</SCP-IN-001>
+    <SCP-IN-004>Extensions bridging FlexVerse length/align types onto flex styles.</SCP-IN-001>
+    <SCP-OUT-001>Mapping widget properties onto styles — owned by SS-WIDGET-RUNTIME.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>CalculateLayout is deterministic for identical node/style inputs per SS-FLEXBOX.REQ-001.</REQ-001>
+    <REQ-002>No reference to Unity, RimWorld or FlexVerse widget types.</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>node: Node — root of the layout subtree.</IN-001>
+      <IN-002>width/height and their measure modes.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>computed node layout (position/size) across the subtree.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `Flex.CalculateLayout(node, width, widthMode, height, heightMode)` => node rects
+* `Flex.{CreateDefaultNode|CreateDefaultConfig|NodeCopyStyle|Reset|SetPointScaleFactor|SetExperimentalFeatureEnabled|IsExperimentalFeatureEnabled}`
+* `Flex.{FloatsEqual|RoundValueToPixelGrid}`
+* `Node.{AddChild|InsertChild|RemoveChild|GetChild|IsDirty|MarkAsDirty|hadOverflow}`
+* `Node.{StyleGet*|StyleSet*|LayoutGetMargin|LayoutGetPadding|LayoutGetBorder}`
+* `Node.{SetMeasureFunc|GetMeasureFunc|SetBaselineFunc|GetBaselineFunc|MeasureFunc|BaselineFunc}`
+* `Style.{Set|Copy|Clone}` + `Config.{SetDefault|LoggerFunc|LogLevelToString}`
+* `Flex.{Parse|ParseStyleAttr|ParseValueFromString|ParseFourValueFromString}` + `Flex.{StringTo*|*ToString}`
+* `Length` + `Size` + `Constant` + `Enums` + `Utils`
+* `Extensions.{Apply|ApplyAnimation}` -> `Widget` properties => `Style`
+]]>
+  </Codemap>
+</M-FLEXBOX>

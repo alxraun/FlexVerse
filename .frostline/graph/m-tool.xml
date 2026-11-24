@@ -1,0 +1,33 @@
+<!-- parents: @.frostline/graph/p-flextools.xml -->
+<M-TOOL>
+  <Purpose>Tool extension contract: the abstract Tool class with lifecycle hooks and the [Tool(id)] registration attribute every FlexTools tool implements.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Tool abstract class: Initialize/Shutdown hooks.</SCP-IN-001>
+    <SCP-IN-002>ToolAttribute: id and IsEnabledByDefault.</SCP-IN-001>
+    <SCP-OUT-001>Discovery and lifecycle management — owned by M-TOOL-MANAGER.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Every concrete tool is registered exactly by its [Tool(id)] identity.</REQ-001>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>id: string — stable tool identity in settings and UI.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Tool.Initialize / Tool.Shutdown lifecycle invocations driven by M-TOOL-MANAGER.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Concrete tool implementations may perform arbitrary side effects in their hooks.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `Tool` -> `Tool.Initialize` + `Tool.Shutdown`
+* `ToolAttribute(id)` : `Attribute` -> `ToolAttribute.Id` + `ToolAttribute.IsEnabledByDefault`
+* `{WidgetInspector}` : `Tool`]]>
+  </Codemap>
+</M-TOOL>

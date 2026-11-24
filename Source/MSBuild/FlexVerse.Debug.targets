@@ -1,0 +1,29 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <ItemGroup>
+    <ProjectReference Include="$(ProjectRoot)Source\FlexVerse\FlexVerse.csproj" />
+    <ProjectReference
+      Include="$(ProjectRoot)Source\FlexVerse.SourceGenerators\FlexVerse.SourceGenerators.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+    />
+    <ProjectReference
+      Include="$(ProjectRoot)Source\FlexVerse.PropertyWeaver.Fody\FlexVerse.PropertyWeaver.Fody.csproj"
+      ReferenceOutputAssembly="false"
+    />
+    <PackageReference Include="Fody" Version="6.9.2" PrivateAssets="all" />
+  </ItemGroup>
+  <PropertyGroup>
+    <WeaverConfiguration>
+      <Weavers>
+        <FlexVerse.PropertyWeaver />
+      </Weavers>
+    </WeaverConfiguration>
+  </PropertyGroup>
+  <Target Name="InjectLocalWeaverPath" BeforeTargets="FodyTarget">
+    <Message Text="Using Local Weaver DLL for Debug" Importance="High" />
+    <ItemGroup>
+      <WeaverFiles Include="$(ProjectRoot)Source\FlexVerse.PropertyWeaver.Fody\bin\$(Configuration)\netstandard2.0\FlexVerse.PropertyWeaver.Fody.dll" />
+    </ItemGroup>
+  </Target>
+</Project>

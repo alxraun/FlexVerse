@@ -1,0 +1,29 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-IMAGE-WIDGET>
+  <Purpose>Read-only image content with texture resolution, intrinsic sizing, tint, resizing and optional rounded own-image rendering.</Purpose>
+  <Scope>
+    <SCP-IN-001>TexturePath or TextureInstance resolution and intrinsic content sizing.</SCP-IN-001>
+    <SCP-IN-002>ResizeMode, TintColor and rounded content image rendering.</SCP-IN-002>
+    <SCP-IN-003>Own-image corner radii and Tooltip; decorative backgrounds, borders and shadows are composed through View.</SCP-IN-003>
+    <SCP-OUT-001>Gradient texture creation — owned by M-GRADIENT-TEXTURES.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>ResizeMode supports ScaleToFit, ScaleAndCrop and StretchToFill for the content texture.</REQ-001>
+    <REQ-002>Content texture may come directly from TextureInstance or from TexturePath through ContentFinder, with resolution cached in widget State.</REQ-002>
+    <REQ-003>The image's own texture is clipped to its rounded surface where radii are nonzero, independently of any rectangular child clipping.</REQ-003>
+    <REQ-004>Own-image radii affect drawing only; they do not change intrinsic content measurement or descendant clipping.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>TextureInstance or TexturePath, ResizeMode, tint, corner radii and layout Props.</IN-001></Inputs>
+    <Outputs><OUT-001>Measured image Size and drawn native texture within widget bounds.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Loads texture from ContentFinder when TexturePath is supplied.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `Image` : `Widget`
+* `Image.{TexturePath|TextureInstance|ResizeMode|TintColor|Tooltip|BorderRadius|BorderTopLeftRadius|BorderTopRightRadius|BorderBottomRightRadius|BorderBottomLeftRadius}`
+* `Image.ResolveTexture` -> `ContentFinder<Texture2D>.Get` | `Image.TextureInstance`
+* `Image.OnGUI` -> `CornerRadii.Resolve` -> `ImageDrawer.DrawContent`
+]]>
+  </Codemap>
+</M-IMAGE-WIDGET>

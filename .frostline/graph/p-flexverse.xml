@@ -1,0 +1,45 @@
+<P-FLEXVERSE>
+  <Purpose>Declarative reactive UI ecosystem for RimWorld mod developers: behaviors, a reactive widget tree, Flexbox layout over Unity IMGUI, and a source-generation toolchain that removes modding boilerplate.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>FlexVerse runtime assembly consumed as a RimWorld mod dependency.</SCP-IN-001>
+    <SCP-IN-002>Behavior-based reactive state, animation, computed values and effect composition.</SCP-IN-002>
+    <SCP-IN-003>Widget tree with reconciliation, Flexbox layout, transformed input targeting, native rectangular child clipping, local paint order and Unity IMGUI rendering.</SCP-IN-003>
+    <SCP-IN-004>Build-time metaprogramming (Roslyn source generator, Fody IL weaving) for widget properties.</SCP-IN-004>
+    <SCP-OUT-001>Planned-but-unimplemented capabilities are excluded from the implemented architecture.</SCP-OUT-001>
+    <SCP-OUT-002>Repository tooling — owned by the sibling project P-FLEXVERSE-TOOLING.</SCP-OUT-002>
+    <SCP-OUT-003>Test suites — deferred to the verification plane.</SCP-OUT-003>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Represent current accepted architecture and actual dependencies; never model planned work as implemented.</PRIN-001>
+    <PRIN-002>A module is an independent behavioral contract, not every class or file; one module may span multiple files.</PRIN-002>
+    <PRIN-003>Keep unverified modules visibly unverified until deterministic project gates exist; never invent passing evidence.</PRIN-003>
+    <PRIN-004>All product logging flows through FlexVerse.Log with a grep-stable module marker contract.</PRIN-004>
+    <PRIN-005>Build-time metaprogramming is isolated from the game runtime; they share only generated symbol names.</PRIN-005>
+    <PRIN-006>Public widget APIs use flat reactive Props. View owns general decorative surfaces; specialized widgets own content and native control presentation. Decoration is composed around content without an independent Style object or replacement renderer.</PRIN-006>
+  </Principles>
+
+  <Technology>
+    <TECH-001>C# on .NET Framework 4.8 inside RimWorld and Unity; netstandard2.0 for build tools.</TECH-001>
+    <TECH-002>Unity IMGUI for rendering and input; RimWorld mod loading via About.xml.</TECH-002>
+    <TECH-003>Roslyn source generators and Fody/Mono.Cecil for compile-time code production.</TECH-003>
+    <TECH-004>Verification branches: XUnit (offline, dotnet test) and Pickle (in-session RimWorld.Pickle scenarios); manual inspection via the Explorer window.</TECH-004>
+  </Technology>
+
+<Codemap>
+<![CDATA[
+* `Behavior<T>` + `ComputedBehavior<TResult>` + `FlexVerseGenerator` + `FlexVerseRoot` + `WidgetEngine` : `FlexVerse`
+* `FlexVerseRoot.Update` -> `BehaviorUpdater.Update` -> `Behavior.Update`
+* `FlexVerseRoot.OnDestroy` -> `AppearanceMasks.DisposeCaches` + `GradientTextures.ClearCache`
+* `IPropertyRef` + `BindRef` + `WatchRef` -> `Widget.GetProperty(key)`
+* `WidgetEmitter.Emit` -> `Widget._Get{Prop}` + `Widget._Set{Prop}` -> `ModuleWeaver.Execute`
+* `Flex.CalculateLayout` => `WidgetEngine.GetLayoutResults`
+* `WidgetEngine.ProcessUI` -> `FlexEventDispatcher.ProcessEvents` -> `WidgetReconciler` -> `WidgetLayoutCalculator` -> `WidgetGeometryBuilder.Refresh` -> `WidgetRenderer.RenderInstanceTree`
+* `WidgetRenderer.RenderWithChildren` -> `Widget.OnGUI` + `Widget.BeginChildrenGUI` + `Widget.EndChildrenGUI`
+* `WidgetGeometryBuilder.Refresh` -> `WidgetTree.GetChildrenInPaintOrder`
+* `View` + `ScrollView` + `CanvasView` + `Button` + `Checkbox` + `TextField` + `HorizontalSlider` + `AreaSlider` + `Label` + `Image` : `Widget`
+* `BackgroundDrawer` + `BorderDrawer` + `ShadowDrawer` + `ImageDrawer` + `GradientTextures` -> `Texture2D` + `UnityEngine.GUI`
+]]>
+  </Codemap>
+</P-FLEXVERSE>

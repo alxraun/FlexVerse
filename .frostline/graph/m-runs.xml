@@ -1,0 +1,30 @@
+<!-- parents: @.frostline/graph/p-flexverse-tooling.xml -->
+<M-RUNS>
+  <Purpose>The run domain (the runs section of Scripts/_lib.py): the typed mods.json registry, run composition, pin-once download cache, per-run materialization into staging, and the evidence contracts (typed Verdict from markers only, report.json, differential diff.json, the exit-code decision).</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Scripts/_lib.py (runs section): HARNESS_MARKERS + DEFAULT_FILTER (the evidence marker contract), load_registry, load_base, compose, run_filter, ensure_cached, materialize, derive_verdict, write_report, load_report, summarize, diff_verdict, report_exit_code.</SCP-IN-001>
+    <SCP-OUT-001>Feature declarations (.feature files) — data of the verification plane; mods.json is tooling input.</SCP-OUT-001>
+    <SCP-OUT-002>Marker emission — product-side FlexVerse.Log contract, read-only here.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>A mod pin is downloaded exactly once into .cache/mods (S-VERIFICATION.REQ-002); unknown mod ids, sources and cache keys fail loudly at composition time.</REQ-001>
+    <REQ-002>Materialization hardlinks when possible and copies cross-device; the staging Mods dir mirrors the real game layout.</REQ-002>
+    <REQ-003>Every run leaves Player.log plus report.json with schema flexverse.report/1 (S-VERIFICATION.REQ-004).</REQ-003>
+    <REQ-004>Verdicts derive only from grep-stable markers; marker silence yields no pass — HarnessDidNotRun, never green (S-VERIFICATION.PRIN-002).</REQ-004>
+    <REQ-005>Compat verdicts subtract only declared knownNoise/expectedLog of the run's mods; everything else is fact comparison (S-VERIFICATION.REQ-003).</REQ-005>
+    <REQ-006>Runs are DLC-free: staged ModsConfig.xml pre-declares every official expansion in knownExpansions (the game auto-activates only NEW official expansions — Verse.ModsConfig) and never lists them in activeMods.</REQ-006>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `load_registry` => `dict[id -> ModPin]` ; `compose(--with)` => `compat-<id>` composition
+* `run_filter(composition, feature)` : override | declared features | DEFAULT_FILTER ; multiple features => warn
+* `ensure_cached` channels: github | workshop | workspace => `.cache/mods/<key>`
+* `materialize` -> `_link_or_copy` => `staging/{run}/Mods` + `_write_config` <= `appdata(run)` ; `OFFICIAL_DLC` => `knownExpansions` => DLC never auto-activated
+* `derive_verdict(log, rc)` => `Verdict{Scenario, HARNESS_MARKERS, [FV][M- count}`
+* `write_report` => `report.json` (flexverse.report/1) ; `diff_verdict` => `DiffResult` - noise
+* `report_exit_code` => `ExitCode` 0 | 1 | 2 : decided in one place]]>
+  </Codemap>
+</M-RUNS>

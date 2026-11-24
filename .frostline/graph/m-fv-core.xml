@@ -1,0 +1,32 @@
+<!-- parents: @.frostline/graph/p-flexverse-tooling.xml -->
+<M-FV-CORE>
+  <Purpose>The tooling core machinery (the core section of Scripts/_lib.py): the 0/1/2 exit-code vocabulary, typed configuration, typed domain models, content fingerprints, the task store, and the linear pipeline. Domain-free by contract.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Scripts/_lib.py (core section): errors (ExitCode, ToolingError hierarchy, die), config (REPO_ROOT, CacheLayout, Profile), models (RunSpec, GameInfo, ModPin, RunComposition, RunPlan, Verdict, DiffResult), hashing (file/tree/doc digests), TaskStore, Pipeline.</SCP-IN-001>
+    <SCP-OUT-001>Domain knowledge (dotnet, game, runs) — owned by M-DOTNET / M-GAME / M-RUNS; the core never imports them.</SCP-OUT-001>
+    <SCP-OUT-002>Pipeline compositions — owned by M-OP-TEST / M-OP-PLAY.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Data crosses task boundaries only as typed frozen models — never loose dicts; JSON exists only at the evidence boundary.</PRIN-001>
+    <PRIN-002>Cached tasks resume, never skip blindly: a resumed body recomputes cheap outputs and skips expensive external side effects (best-effort acceleration, not a correctness guarantee).</PRIN-002>
+    <PRIN-003>Infrastructure failures resolve to the harness-did-not-run code — never misread as data verdicts (P-FLEXVERSE-TOOLING.PRIN-002).</PRIN-003>
+    <PRIN-004>The core is domain-free: adding a new operation or domain must never require core changes.</PRIN-004>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>All cache and staging paths resolve through CacheLayout (including docker build cache under .cache/buildx); no module hardcodes its own layout.</REQ-001>
+    <REQ-002>Pipeline.run executes stages strictly in declaration order; out() fails loudly on a not-yet-run stage.</REQ-002>
+    <REQ-003>A fingerprint-hit stage resumes (recomputes cheap outputs, skips expensive side effects); stages without a fingerprint always run.</REQ-003>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `Pipeline.run(name, body(cached), fingerprint)` -> `TaskStore.hit/record` ; `Pipeline.out(id)` => typed earlier output
+* linear by design: composition IS the call order — no dependency graph machinery
+* `CacheLayout` => `.cache/{game,mods,staging,runs,pkg,tasks,buildx}` + `nuget_env` + `docker_env` ; `tasks/` = fingerprints, `staging/` = run scratch
+* `ExitCode{0|1|2}` <= `die()` : only authorized exit path
+* `tree_digest(Source/ + props)` => build fingerprints ; `doc_digest(spec)` => stage_mods fingerprint]]>
+  </Codemap>
+</M-FV-CORE>

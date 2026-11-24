@@ -1,0 +1,15 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <PackageOutputPath>$(NuGetLocalDir)</PackageOutputPath>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <RestoreAdditionalProjectSources Condition="Exists('$(NuGetLocalDir)')">
+      $(RestoreAdditionalProjectSources);$(NuGetLocalDir)
+    </RestoreAdditionalProjectSources
+    >
+  </PropertyGroup>
+</Project>

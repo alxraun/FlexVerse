@@ -1,0 +1,30 @@
+<!-- parents: @.frostline/graph/s-runtime-platform.xml -->
+<SS-RUNTIME-SERVICES>
+  <Purpose>Session-level runtime services: the Unity host root object, the behavior ownership registry, and the global tick loop driving subscribed behaviors.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>FlexVerseRoot MonoBehaviour: creation, update pumping, mod entry and settings.</SCP-IN-001>
+    <SCP-IN-002>BehaviorRegistry: reference counting and per-owner subscription ledger.</SCP-IN-002>
+    <SCP-IN-003>BehaviorUpdater: weak-reference tick list with throttling support.</SCP-IN-003>
+    <SCP-OUT-001>Property-slot subscription semantics — owned by SS-PROPERTY-REFS.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Services are process singletons reachable from any mod without service location by user code.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>The root survives scene loads and never duplicates across mod reloads.</REQ-001>
+    <REQ-002>Tick order is stable: registry bookkeeping runs before behavior updates each frame.</REQ-002>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `FlexVerseRoot` + `BehaviorRegistry` + `BehaviorUpdater`
+* `FlexVerseRoot.Instance` -> `FlexVerseRoot.BehaviorRegistry` + `FlexVerseRoot.BehaviorUpdater`
+* `FlexVerseRoot.Update` -> `BehaviorUpdater.Tick(deltaTime)` -> `Behavior.Update(deltaTime)`
+* `BehaviorRegistry.{Increment|Decrement}` => owner lifetime
+* `BehaviorRegistry.RegisterSubscription` <= `BindRef` + `WatchRef`
+]]>
+  </Codemap>
+</SS-RUNTIME-SERVICES>

@@ -1,0 +1,28 @@
+<!-- parents: @.frostline/graph/s-widgets.xml -->
+<SS-FLEXBOX>
+  <Purpose>Self-contained Flexbox layout engine: a C# port of Yoga computing node measurements from styles, feeding layout rects to the widget runtime.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Flex/Node/Style calculation over the box model (flex direction, align, justify, wrap, grow/shrink/basis).</SCP-IN-001>
+    <SCP-IN-002>Pixel-grid rounding and float comparison helpers.</SCP-IN-001>
+    <SCP-OUT-001>Widget property mapping onto styles — owned by SS-WIDGET-RUNTIME.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>The engine is dependency-free C#: no Unity, no RimWorld, no FlexVerse types.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>CalculateLayout(node, width, widthMode, height, heightMode) produces deterministic results for identical inputs.</REQ-001>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `Flex` : layout engine
+* `Flex.CalculateLayout` => `Node` rects => `WidgetLayoutCalculator`
+* `{Node|Style|Config|Length|Size|Enums}`
+* `Extensions.{Apply|ApplyAnimation}` -> `Widget.{Prop}` => `Style`
+* `Flex` + `Node` + `Style` != Unity | RimWorld | `Widget`
+]]>
+  </Codemap>
+</SS-FLEXBOX>

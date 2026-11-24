@@ -1,0 +1,23 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <PropertyGroup>
+    <WeaverConfiguration Condition="'$(WeaverConfiguration)' == ''">
+      <Weavers>
+        <FlexVerse.PropertyWeaver />
+      </Weavers>
+    </WeaverConfiguration>
+  </PropertyGroup>
+  <ItemGroup>
+    <WeaverFiles Include="$(MSBuildThisFileDirectory)..\weaver\FlexVerse.PropertyWeaver.Fody.dll" />
+  </ItemGroup>
+  <PropertyGroup>
+    <FlexVerseCopyLocal Condition="'$(FlexVerseCopyLocal)' == ''">false</FlexVerseCopyLocal>
+  </PropertyGroup>
+  <Target Name="ApplyFlexVerseCopyLocal" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Condition="'%(Reference.Filename)' == 'FlexVerse'">
+        <Private>$(FlexVerseCopyLocal)</Private>
+      </Reference>
+    </ItemGroup>
+  </Target>
+</Project>

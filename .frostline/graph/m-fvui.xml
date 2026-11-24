@@ -1,0 +1,48 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-FVUI>
+  <Purpose>High-level declarative entry point (FVUI) in the root FlexVerse namespace: route host rects and widget trees to their keyed WidgetEngine without caller-managed fields.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>FVUI static class: Render, Release, and GetEngine.</SCP-IN-001>
+    <SCP-IN-002>Coordination between host-provided Rect boundaries and EngineRegistry.</SCP-IN-002>
+    <SCP-OUT-001>Window stack, window lifecycle, and native IMGUI event loop — owned by the game host (RimWorld WindowStack).</SCP-OUT-001>
+    <SCP-OUT-002>Tree reconciliation and layout calculation — owned by M-WIDGET-ENGINE.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Guest engine contract: UI never manages window instances or screen buffers; it strictly renders within the Rect provided by the host.</PRIN-001>
+    <PRIN-002>Stateless caller ergonomics: FVUI.Render provides a single-line call site for host draw hooks (DoWindowContents, GizmoOnGUI).</PRIN-002>
+    <PRIN-003>Domain separation: lives as a distinct static class FVUI inside namespace FlexVerse alongside sibling facades (Animate, etc.); the FV prefix keeps it conflict-free next to Verse.UI in host code.</PRIN-003>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>FVUI.Render(key, rect, root) resolves the engine via EngineRegistry.GetOrCreate(key) and drives WidgetEngine.ProcessUI(root, rect), returning layout results.</REQ-001>
+    <REQ-002>FVUI.Release(key) delegates directly to EngineRegistry.Release(key), returning true if the engine was present and released.</REQ-002>
+    <REQ-003>Repeated FVUI.Render calls with the same key across frames preserve instance tree identity and reconciliation state.</REQ-003>
+    <REQ-004>FVUI.GetEngine(key) delegates to EngineRegistry.Get(key), returning the engine or null without throwing.</REQ-004>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>key: string — stable identifier of the rendering context.</IN-001>
+      <IN-002>rect: Rect — available screen/window area supplied by host.</IN-002>
+      <IN-003>root: Widget — declarative widget definition tree for the frame.</IN-003>
+    </Inputs>
+    <Outputs>
+      <OUT-001>IReadOnlyDictionary&lt;Widget, Rect&gt; — layout results from WidgetEngine.ProcessUI.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Issues IMGUI draw calls and dispatches input events within rect.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `FVUI.{Render|Release|GetEngine}`
+* `FVUI.Render(key, rect, root)` -> `EngineRegistry.GetOrCreate(key)` -> `WidgetEngine.ProcessUI(root, rect)`
+* `FVUI.Release(key)` -> `EngineRegistry.Release(key)`
+* `FVUI.GetEngine(key)` -> `EngineRegistry.Get(key)`
+* `FVUI` : static facade in root `FlexVerse` namespace
+]]>
+  </Codemap>
+</M-FVUI>

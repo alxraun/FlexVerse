@@ -1,0 +1,35 @@
+<!-- parents: @.frostline/graph/p-flexverse.xml -->
+<S-RUNTIME-PLATFORM>
+  <Purpose>Game-side runtime substrate of FlexVerse: the Unity host object, behavior ownership and tick scheduling, and the reactive property-slot contract consumed by widget code.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Unity MonoBehaviour host: root object lifecycle, mod entry, settings.</SCP-IN-001>
+    <SCP-IN-002>Behavior reference counting and per-owner subscription tracking.</SCP-IN-002>
+    <SCP-IN-003>Global time tick over weakly-referenced subscribed behaviors, with throttling.</SCP-IN-003>
+    <SCP-IN-004>Abstract property-slot contract (IPropertyRef) and its Bind/Watch realizations.</SCP-IN-004>
+    <SCP-OUT-001>Widget tree, layout, input, rendering — owned by S-WIDGETS.</SCP-OUT-001>
+    <SCP-OUT-002>Behavior interpolation math — owned by S-BEHAVIORS.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Runtime must not keep strong references to mod-owned behaviors: ticking walks weak references.</PRIN-001>
+    <PRIN-002>Subscriptions are always owner-scoped so an unmounting owner releases all handlers at once.</PRIN-002>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Exactly one FlexVerseRoot exists per session and it owns the global registry and updater.</REQ-001>
+    <REQ-002>A behavior whose owner was collected stops being ticked without manual unregistration.</REQ-002>
+    <REQ-003>WatchRef resubscribes when the behavior instance in a slot is replaced (M-WATCH-REF.REQ-001).</REQ-003>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `{FlexVerseRoot|BehaviorRegistry|BehaviorUpdater}` + `{IPropertyRef|BindRef|WatchRef}`
+* `FlexVerseRoot.Instance` -> `BehaviorRegistry` + `BehaviorUpdater`
+* `FlexVerseRoot.Update` -> `BehaviorUpdater.Tick(deltaTime)` -> `Behavior.Update(deltaTime)`
+* `BehaviorRegistry.{Increment|Decrement}` => target lifetime
+* `IPropertyRef` -> `BindRef` | `WatchRef`
+* `IPropertyRef` + `BindRef` + `WatchRef` -> `Widget.{Prop}`
+]]>
+  </Codemap>
+</S-RUNTIME-PLATFORM>

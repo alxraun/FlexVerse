@@ -1,0 +1,28 @@
+<!-- parents: @.frostline/graph/s-behaviors.xml -->
+<SS-BEHAVIOR-PRIMITIVES>
+  <Purpose>Single-strategy interpolation behaviors: instant or delayed assignment, duration-based tweening with easing curves, and physical spring integration.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>StaticBehavior: immediate target capture with optional delay.</SCP-IN-001>
+    <SCP-IN-002>TweenBehavior: time-normalized interpolation with retargeting and speed calibration.</SCP-IN-002>
+    <SCP-IN-003>SpringBehavior: tension/mass/damping integration toward a target.</SCP-IN-003>
+    <SCP-OUT-001>Composition of behaviors into chains or timelines — owned by SS-BEHAVIOR-COMPOSITES.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Each primitive owns exactly one interpolation strategy; no primitive delegates to another.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Retargeting a running tween preserves elapsed progress semantics instead of restarting from scratch.</REQ-001>
+    <REQ-002>A spring settles when velocity and remaining distance fall below epsilon, then reports finished.</REQ-002>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `StaticBehavior<T>` + `TweenBehavior<T>` + `SpringBehavior<T>` : `Behavior<T>`
+* `StaticBehavior.Update(deltaTime)` => delay <= 0 => value == target
+* `TweenBehavior.Update(deltaTime)` -> `Easing(curve, t)` => value
+* `SpringBehavior.Update(deltaTime)` -> integrate(velocity) => value == target + velocity == 0]]>
+  </Codemap>
+</SS-BEHAVIOR-PRIMITIVES>

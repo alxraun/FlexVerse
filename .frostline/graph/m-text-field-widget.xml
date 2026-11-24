@@ -1,0 +1,33 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-TEXT-FIELD-WIDGET>
+  <Purpose>Single-line controlled text editor preserving native IMGUI keyboard, selection, caret and IME behavior with validated proposed value callbacks.</Purpose>
+  <Scope>
+    <SCP-IN-001>TextField Value, MaxLength, Validator, OnValueChange, Placeholder, Disabled and native focus/submit/cancel hooks.</SCP-IN-001>
+    <SCP-IN-002>Font, TextAlign, Color, Tooltip and DrawTextFieldBackground native surface toggle.</SCP-IN-002>
+    <SCP-OUT-001>Focus registry implementation — owned by M-FOCUS-MANAGER.</SCP-OUT-001>
+    <SCP-OUT-002>Multiline/custom text editing engines.</SCP-OUT-002>
+  </Scope>
+  <Requirements>
+    <REQ-001>Value is owner-authoritative; GUI.TextField proposes text. Non-identical proposals reach OnValueChange only when enabled and allowed by Validator, without assigning Value.</REQ-001>
+    <REQ-002>Validator vetoes proposed edits; an externally supplied invalid Value remains visible and receives invalid text tint.</REQ-002>
+    <REQ-003>Placeholder never enters Value and draws only while empty and unfocused.</REQ-003>
+    <REQ-004>Native GUI.TextField retains focus, caret, selection and IME. DrawTextFieldBackground false suppresses native backgrounds on a private GUIStyle copy without modifying the shared style.</REQ-004>
+    <REQ-005>Disabled suppresses editing, submit and cancel; a focused field loses native focus when it becomes disabled.</REQ-005>
+    <REQ-006>Intrinsic text-field size is 100 by 30 UI units, limited by supplied MeasureMode; font/alignment and native GUI state are restored after rendering.</REQ-006>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Value, edit and native presentation Props, and native mouse/keyboard input.</IN-001></Inputs>
+    <Outputs><OUT-001>Optional validated proposed string through OnValueChange; OnSubmit/OnCancel actions.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Native GUI.TextField editing, focus registration and conditional callback invocations.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `TextField` : `Widget`
+* `TextField.{Value|MaxLength|Validator|OnValueChange|Placeholder|Disabled|OnSubmit|OnCancel|Font|TextAlign|Color|Tooltip|DrawTextFieldBackground}`
+* `TextField.OnMouseDown` -> `FocusManager.RequestFocus`
+* `TextField.OnKeyDown` -> `TextField.OnSubmit` | `TextField.OnCancel`
+* `TextField.OnGUI` -> `GUI.TextField` -> `TextField.ProposeValue` => `TextField.OnValueChange`
+* `TextField.OnGUI` -> `FocusManager.Register` -> `GUI.SetNextControlName`
+]]>
+  </Codemap>
+</M-TEXT-FIELD-WIDGET>

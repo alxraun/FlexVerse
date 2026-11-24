@@ -1,0 +1,91 @@
+#!/usr/bin/env -S uv run --script
+
+# parents: @.frostline/graph/m-op-play.xml
+# /// script
+# requires-python = ">=3.10"
+# dependencies = []
+# ///
+"""Manual play session in the same container as the verification gate.
+
+Usage:
+  uv run Scripts/play [--profile local|ci] [--vm] [--stop CONTAINER]
+
+Stages base plus the playWith mods from Scripts/mods.json, builds, then runs the game
+with GUI passthrough — no scenarios, no verdict. Evidence: Player.log in
+.cache/runs/<run>/.
+
+  --vm              run on a VIRTUAL monitor (Xvfb inside the container):
+                    full render, no host display. Session stays live; drive
+                    it with docker exec xdotool / import, see session.json
+                    in the run dir. No automatic verdict.
+  --stop CONTAINER  end a live --vm session: SIGTERM to the game first
+                    (graceful), the container stops itself and records the
+                    game's exit status in the run dir.
+"""
+from __future__ import annotations
+
+import sys
+from dataclasses import replace
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from _lib import (  # noqa: E402
+    CacheLayout, RunSpec, StageFailure, ToolingError, console, die,
+    game_pipeline, load_play_extras, parse_profile, require_value,
+    run_play, run_play_vm, vm_stop,
+)
+
+
+def parse_args(argv: list[str]) -> tuple[RunSpec, str | None]:
+    spec = RunSpec(with_mods=load_play_extras())
+    stop: str | None = None
+    args = list(argv)
+    while args:
+        a = args.pop(0)
+        if a == "--profile":
+            spec = replace(spec, profile=parse_profile(require_value(args, a)))
+        elif a == "--vm":
+            spec = replace(spec, vm=True)
+        elif a == "--stop":
+            stop = require_value(args, a)
+        elif a.startswith("-"):
+            die(f"unknown flag '{a}' (see --help)")
+        else:
+            spec = replace(spec, profile=parse_profile(a))
+    return spec, stop
+
+
+def main() -> int:
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(__doc__.strip(), flush=True)
+        return 0
+    spec, stop = parse_args(sys.argv[1:])
+    if stop:
+        return vm_stop(stop)
+    try:
+        # play = the shared game pipeline minus the verdict plane: the
+        # entrypoint swaps to run_play, Player.log is the only evidence
+        # (M-OP-PLAY.REQ-002). Exit code: always 0.
+        p = game_pipeline(spec)
+        plan = p.out("stage_mods")
+        run_dir = CacheLayout().run_dir(plan.run_name)
+        if spec.vm:
+            run_play_vm(plan.run_name, run_dir)
+            console(f"vm session live (run: {plan.run_name}); artifacts: "
+                    f"{run_dir} (screenshots/, Player.log, session.json); "
+                    "end the session explicitly: uv run Scripts/play --stop "
+                    "<container>")
+        else:
+            rc = run_play(plan, run_dir)
+            console(f"play session ended (exit {rc}); "
+                    f"evidence: {run_dir / 'Player.log'}")
+        return 0
+    except StageFailure as exc:
+        die(str(exc), exc.code)
+    except ToolingError as exc:
+        die(str(exc), exc.code)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,37 @@
+<P-FLEXVERSE-TOOLING>
+  <Purpose>Repository tooling project: the MSBuild build mechanism and the verification pipeline (containerized game runs, evidence) serving both product projects P-FLEXVERSE and P-FLEXTOOLS.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>MSBuild build configuration and deployment layout for all Source/ projects.</SCP-IN-001>
+    <SCP-IN-002>Verification pipeline: staging, game source, mod manager, containerized runs, evidence contracts.</SCP-IN-001>
+    <SCP-OUT-001>Verification truth claims — owned by the test suites M-XUNIT / M-PICKLE / M-EXPLORER; this project only runs commands and records evidence.</SCP-OUT-001>
+    <SCP-OUT-002>Feature declarations (.feature files) — data of the verification plane; mods.json (mod registry, base set) is tooling input.</SCP-OUT-002>
+    <SCP-OUT-003>Regenerable artifacts: .cache/, bin/obj, __pycache__, deployed Assemblies.</SCP-OUT-003>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Serve both product projects symmetrically; tooling never imports product semantics beyond marker contracts.</PRIN-001>
+    <PRIN-002>Evidence is anti-false-green: exit code 0/1/2 separates pass/fail from harness-did-not-run; Player.log is the only primary source.</PRIN-002>
+    <PRIN-003>Everything under .cache/ is regenerable; no durable state lives in caches.</PRIN-003>
+    <PRIN-004>Commands are operations: each Scripts/ command is one semantic operation (test, play, and future build/package/deploy) over a shared kernel; a new operation is a new command, never a flag. Harness selection within `test` is by name from a closed registry.</PRIN-004>
+    <PRIN-005>Local-first and CI-identical: the gate is one command on a laptop and in CI; environment differences live in --profile and environment variables, never in code branches.</PRIN-005>
+    <PRIN-006>Selection of the external world is by name from data: each seam with multiple implementations exposes a name -> implementation registry chosen by --profile; unknown names fail loudly; single-implementation seams stay plain functions.</PRIN-006>
+  </Principles>
+
+  <Technology>
+    <TECH-001>MSBuild for build configuration; dotnet CLI for builds and offline tests.</TECH-001>
+    <TECH-002>Python via uv (`uv run Scripts/test`); docker containers for game runs.</TECH-002>
+    <TECH-003>steamcmd for CI game source, selected by --profile with credentials from environment variables only.</TECH-003>
+  </Technology>
+
+  <Codemap>
+<![CDATA[
+* `Directory.Build.props` + `Scripts/{test,play}` + `Scripts/_lib.py` (sections core|dotnet|game|runs|ops) : children ; command files declare their own pipeline order
+* `M-FV-CORE` + `M-DOTNET` + `M-GAME` + `M-RUNS` ; `S-VERIFICATION` -> `M-OP-TEST` + `M-OP-PLAY`
+* `DeployToModFolder` -> `Mods/{mod}/Assemblies/` => product mods
+* `Scripts/{test,play}` -> `game_pipeline` -> `Pipeline` -> `_lib.py` sections -> `dotnet build` -> `DeployToModFolder`
+* `run_test` -> `Player.log` -> `write_report` => `report.json` (typed Verdict)
+* `evidence.grep('[FV][M-')` <= `FlexVerse.Log` : marker contract
+* `uv run Scripts/test all` : the gate, invoked by humans and CI runners alike]]>
+  </Codemap>
+</P-FLEXVERSE-TOOLING>

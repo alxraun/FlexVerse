@@ -1,0 +1,44 @@
+<!-- parents: @.frostline/graph/p-flexverse.xml -->
+<S-BEHAVIORS>
+  <Purpose>Reactive behavior domain: typed value/target behaviors, primitive motion, ordered and time-based compositions, dependency-triggered effects, and lazily computed values. Convergence toward Target is the default for motion-oriented behaviors, not an obligation of every behavior algorithm.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Behavior lifecycle (inactive; active with idle-stability completion: State stays Active, IsUpdating == false), typed value/target state, events, reset and union semantics.</SCP-IN-001>
+    <SCP-IN-002>Primitive interpolation strategies: static, tween with easing, spring integration.</SCP-IN-002>
+    <SCP-IN-003>Composite strategies: sequences, keyframes, effects, timeline action composition, computed values.</SCP-IN-003>
+    <SCP-OUT-001>Tick scheduling and ownership tracking — owned by S-RUNTIME-PLATFORM.</SCP-OUT-001>
+    <SCP-OUT-002>Widget property slots and rebinding — owned by SS-PROPERTY-REFS.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Every concrete behavior is a behavioral specialization of the M-BEHAVIOR base contract; no parallel hierarchies.</PRIN-001>
+    <PRIN-002>Behaviors are values: UnionWith and SemEquals define merge and identity, implicit conversion from T lifts plain values.</PRIN-002>
+    <PRIN-003>Behaviors never self-schedule; they advance only when Update is driven externally.</PRIN-003>
+    <PRIN-004>Polymorphic composition: consumers use the shared behavior contract without branching on concrete behavior kinds. Nesting or replacing an implementation preserves its inherited obligations, not its internal algorithm or trajectory.</PRIN-004>
+    <PRIN-005>Semantic honesty: target convergence and live retarget adaptation are the default for behaviors whose algorithms are target-driven. Other behaviors may retain incoming Value/Target assignments without using them to drive execution, or supersede those assignments through their own computation. Each concrete contract states the observable consequences; passive storage is not automatically a violation, and no behavior must invent a trajectory merely to satisfy a shared accessor.</PRIN-005>
+    <PRIN-006>Encapsulation: compositions interact through public behavior contracts; each behavior owns its internal algorithm and configuration. Shared contracts do not require identical strategies, parameters, or internal representations.</PRIN-006>
+    <PRIN-007>Value and Target remain universally available on Behavior&lt;T&gt;; how fully or partially either property participates in execution is specific to each behavior. Do not introduce binary capability-marker interfaces for these semantics.</PRIN-007>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Behavior&lt;T&gt;.implicit operator(T) wraps a plain value as an immediate StaticBehavior-equivalent target.</REQ-001>
+    <REQ-002>UnionWith(source) is the shared polymorphic state-handoff operation: the receiver accepts applicable information from the source according to its own semantics, preserving useful current state and continuity where possible. Copying every field or maintaining uninterrupted output is not universally guaranteed.</REQ-002>
+    <REQ-003>A behavior returned to a pool by Reset (M-BEHAVIOR.REQ-010) must be reconfigured before reuse; replay of the destroyed run is not guaranteed.</REQ-003>
+    <REQ-004>Each concrete behavior specifies the observable semantics of its public mutations before activation, during execution, and after completion. Implementation gaps must remain distinguishable from supported behavior.</REQ-004>
+    <REQ-005><![CDATA[For target-driven Behavior<T> implementations, live adaptation follows M-BEHAVIOR.REQ-009 and M-BEHAVIOR.REQ-011 without requiring callers to edit internal configuration. Other typed implementations define their own Value/Target semantics, including passive storage or recomputation, without an artificial convergence requirement. Untyped behaviors have no implied Value/Target obligations.]]></REQ-005>
+    <REQ-006>Every typed behavior accepts public Value and Target assignments; these remain separate operations with implementation-specific consequences. An assignment may adapt execution, retain state for later handoff, or be superseded by a subsequent computation. Neither assignment universally implies motion or convergence.</REQ-006>
+    <REQ-007>Concrete adaptation contracts identify which aspects of execution are preserved or recomputed. Shared adaptation does not imply universal preservation of elapsed progress, duration, direction, velocity, or shape.</REQ-007>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `Behavior<T>` + `{StaticBehavior|TweenBehavior|SpringBehavior}` + `{SequenceBehavior|KeyframeBehavior|EffectBehavior|TimelineBehavior|ComputedBehavior}`
+* `Behavior<T>` => base of `StaticBehavior<T>` | `TweenBehavior<T>` | `SpringBehavior<T>` | `SequenceBehavior<T>` | `KeyframeBehavior<T>` | `EffectBehavior` | `TimelineBehavior` | `ComputedBehavior<TResult>`
+* `Behavior<T>.implicit(T value)` -> `Widget.{Prop}`
+* `BehaviorUpdater.Tick(deltaTime)` -> `Behavior.Update(deltaTime)`
+* `Computed.Select<TIn,TOut>` | `Group.Combine<TResult>` -> `ComputedBehavior<TResult>`
+* `TypeUtils` -> `Behavior<T>.UnionWith` : type coercion
+* `{StaticBehavior|TweenBehavior|SpringBehavior|SequenceBehavior|EffectBehavior}` -> `BehaviorRegistry.RegisterSubscription`
+]]>
+  </Codemap>
+</S-BEHAVIORS>

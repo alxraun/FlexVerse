@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="../Test.Mod.props" />
+  <PropertyGroup>
+    <AssemblyName>FlexVerse.Test.Explorer</AssemblyName>
+    <OutputPath>$(DeployRoot)Assemblies\</OutputPath>
+  </PropertyGroup>
+  <Target Name="DeployAbout" AfterTargets="Build">
+    <Copy
+      SourceFiles="..\About\About.xml"
+      DestinationFolder="$(DeployRoot)About\"
+      SkipUnchangedFiles="true"
+    />
+  </Target>
+</Project>

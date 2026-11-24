@@ -1,0 +1,24 @@
+<!-- parents: @.frostline/graph/s-widget-debugger.xml -->
+<M-DBG-OVERLAY>
+  <Purpose>Draw selected widget box layers and transient property-update highlights using engine geometry.</Purpose>
+  <Scope>
+    <SCP-IN-001>BoxModelOverlay, FlashOverlay and native OverlayScope.</SCP-IN-001>
+    <SCP-OUT-001>Geometry calculation, transform composition and clipping policy belong to FlexVerse.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Overlays draw only during Repaint, never consume pointer input, mutate target layout or reconcile the target tree.</REQ-001>
+    <REQ-002>Box edges use the resolved Flexbox node's margin, border and padding; visual placement uses TransformService.GetWorldMatrix and ancestor clips from ClipService.GetClips.</REQ-002>
+    <REQ-003>Native GUI groups and matrix changes are balanced through finally, including when drawing fails.</REQ-003>
+    <REQ-004>Heat intensity uses ChangeTracker.GetHeat with the configured duration.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>Live engine, target widget and configured update heat.</IN-001></Inputs>
+    <Outputs><OUT-001>Native IMGUI overlay drawing in the target host context.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Issues native draw calls inside temporary balanced GUI scopes.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap><![CDATA[
+* `BoxModelOverlay.Draw` -> `WidgetEngine.GetNode` + `WidgetEngine.Geometry` -> `OverlayScope.Draw`
+* `FlashOverlay.Draw` -> `ChangeTracker.GetHeat` + `WidgetEngine.GetChildren` -> `OverlayScope.Draw`
+* `OverlayScope.Draw` -> `TransformService.GetWorldMatrix` + `ClipService.GetClips` + `GUI.BeginGroup` + `GUI.EndGroup`
+]]></Codemap>
+</M-DBG-OVERLAY>

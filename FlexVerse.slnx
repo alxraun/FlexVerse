@@ -1,0 +1,13 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Solution>
+  <Folder Name="/Source/">
+    <Project Path="Source/FlexVerse.Package/FlexVerse.Package.csproj" />
+    <Project Path="Source/FlexVerse.PropertyWeaver.Fody/FlexVerse.PropertyWeaver.Fody.csproj" />
+    <Project Path="Source/FlexVerse.SourceGenerators/FlexVerse.SourceGenerators.csproj" />
+    <Project Path="Source/FlexVerse/FlexVerse.csproj" />
+    <Project Path="Source/FlexTools/FlexTools.csproj" />
+    <Project Path="Source/FlexVerse.Test/Xunit/FlexVerse.Xunit.Test.csproj" />
+    <Project Path="Source/FlexVerse.Test/Explorer/FlexVerse.Test.Explorer.csproj" />
+    <Project Path="Source/FlexVerse.Test/Pickle/FlexVerse.Test.Pickle.csproj" />
+  </Folder>
+</Solution>

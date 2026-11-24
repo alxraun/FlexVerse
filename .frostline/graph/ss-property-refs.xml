@@ -1,0 +1,29 @@
+<!-- parents: @.frostline/graph/s-runtime-platform.xml -->
+<SS-PROPERTY-REFS>
+  <Purpose>Implementation family of the reactive property-slot contract (M-PROPERTY-REF): Bind/Watch over reactive Behavior slots in Widget and FVP owners.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>IPropertyRef: abstract slot contract over a Behavior-typed reactive property, independent of owner kind.</SCP-IN-001>
+    <SCP-IN-002>BindRef: subscribe to events of the behavior currently occupying the slot.</SCP-IN-002>
+    <SCP-IN-003>WatchRef: persistent tracking with automatic resubscription when the slot behavior changes.</SCP-IN-003>
+    <SCP-OUT-001>Behavior lifetime management — delegated to SS-RUNTIME-SERVICES.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Bind and Watch are complementary: bind for current instance, watch for the slot itself.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Replacing the behavior in a watched slot releases the old subscription before acquiring the new one.</REQ-001>
+    <REQ-002>Bind/Watch use strong handlers for all owner types; each owner must end its subscriptions deterministically (WidgetTree.Unmount or ordinary FVP.ReleaseFvp).</REQ-002>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `IPropertyRef` -> `BindRef` | `WatchRef`
+* `IPropertyRef` + `IPropertyRef<T>` : `IPropertyRef`
+* `BindRef` | `WatchRef` -> `BehaviorRegistry.RegisterSubscription`
+* `BindRef` + `WatchRef` -> `Widget.{Prop}` + `FVP`
+]]>
+  </Codemap>
+</SS-PROPERTY-REFS>

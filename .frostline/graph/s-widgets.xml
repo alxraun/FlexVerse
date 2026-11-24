@@ -1,0 +1,43 @@
+<!-- parents: @.frostline/graph/p-flexverse.xml -->
+<S-WIDGETS>
+  <Purpose>Declarative UI: reconciled widget instances, Flexbox layout, visual geometry, native IMGUI rendering and event routing, plus concrete containers and controls.</Purpose>
+  <Scope>
+    <SCP-IN-001>Base Widget with flat reactive Props, instance lifecycle, layout properties, visual self transforms and native child-context hooks.</SCP-IN-001>
+    <SCP-IN-002>Instance-tree reconciliation, signal queue, geometry snapshots, clipping, paint order, focus and pointer/keyboard event dispatch.</SCP-IN-002>
+    <SCP-IN-003>Self-contained C# Flexbox/Yoga layout calculation.</SCP-IN-003>
+    <SCP-IN-004>Containers View, ScrollView and CanvasView; display widgets Label and Image; Button and controlled Checkbox, TextField and sliders.</SCP-IN-004>
+    <SCP-IN-005>Native appearance primitives and gradient textures consumed as ordinary background images.</SCP-IN-005>
+    <SCP-OUT-001>Behavior tick scheduling — owned by S-RUNTIME-PLATFORM.</SCP-OUT-001>
+    <SCP-OUT-002>Widget source generation and weaving — owned by S-METAPROGRAMMING.</SCP-OUT-002>
+    <SCP-OUT-003>Browser DOM, CSS parser, stencil renderer, offscreen subtree compositor and group postprocessing.</SCP-OUT-003>
+  </Scope>
+  <Principles>
+    <PRIN-001>Widgets are declarative definitions; the engine owns mutable instances and keyed reconciliation.</PRIN-001>
+    <PRIN-002>Preserve native RimWorld/Unity IMGUI behavior where it is necessary for controls, focus, caret, selection and IME.</PRIN-002>
+    <PRIN-003>Concrete widgets own their surface drawing and specialized native child contexts; the base Widget declares hooks and the renderer supplies common IMGUI execution.</PRIN-003>
+    <PRIN-004>Component API design prioritizes internal FlexVerse consistency, then React semantics, then conventions across UI frameworks; render constraints may affect the public API.</PRIN-004>
+    <PRIN-005>Layout is authoritative for box size and position; visual transforms affect rendering and hit testing without modifying Flexbox layout.</PRIN-005>
+    <PRIN-006>Reconciliation owns instance identity and properties; Flexbox owns layout calculation; IMGUI owns native drawing and input. These areas exchange data and measurement/context hooks through explicit contracts without requiring independence from each other.</PRIN-006>
+  </Principles>
+  <Requirements>
+    <REQ-001>ProcessUI dispatches input using the previous geometry snapshot, reconciles the current definition, processes signals/layout once, refreshes geometry/clips, then renders.</REQ-001>
+    <REQ-002>Pointer input targets the highest painted eligible widget and bubbles target-first; StopPropagation prevents further bubbling.</REQ-002>
+    <REQ-003>Inherited context resolves to the nearest ancestor provider and shadows outer providers.</REQ-003>
+    <REQ-004>Props are externally supplied inputs, including Behavior objects. Controlled inputs report proposed changes through OnValueChange and do not assign the authoritative Value or Checked themselves.</REQ-004>
+    <REQ-005>State belongs to the widget instance, survives reconciliation by identity and is not duplicated when derivable from input.</REQ-005>
+    <REQ-006>Overflow clips descendants in the native rectangular padding box; decoration and BorderRadius of a widget's own surface do not imply rounded clipping of children.</REQ-006>
+    <REQ-007>ZIndex orders sibling subtrees stably for paint and hit testing without changing declaration order or Flexbox layout.</REQ-007>
+  </Requirements>
+  <Codemap>
+<![CDATA[
+* `Widget` + `WidgetTree` + `WidgetEngine` + `TransformService` + `ClipService` + `FlexEventDispatcher` + `FocusManager` + `Flex`
+* `WidgetEngine.ProcessUI` -> `FlexEventDispatcher.ProcessEvents` -> `WidgetReconciler` -> `WidgetLayoutCalculator` -> `WidgetGeometryBuilder.Refresh` -> `WidgetRenderer.RenderInstanceTree`
+* `WidgetGeometryBuilder.Refresh` -> `WidgetTree.GetChildrenInPaintOrder` -> `WidgetGeometrySnapshot.Publish`
+* `WidgetRenderer.RenderInstanceTree` -> `WidgetGeometrySnapshot.TryGet` -> `WidgetRenderer.RenderWithChildren`
+* `FlexEventDispatcher.ProcessEvents` -> `WidgetHitTester.HitTest` -> `Widget.OnMouseDown` | `Widget.OnMouseUp` | `Widget.OnMouseDrag` | `Widget.OnKeyDown`
+* `ClipService.ContainsChildrenPoint` -> `TransformService.TryToLocal`
+* `View` + `ScrollView` + `CanvasView` + `Button` + `Checkbox` + `TextField` + `HorizontalSlider` + `AreaSlider` + `Label` + `Image` : `Widget`
+* `BackgroundDrawer` + `BorderDrawer` + `ShadowDrawer` + `ImageDrawer` + `GradientTextures` -> `UnityEngine.GUI` + `Texture2D`
+]]>
+  </Codemap>
+</S-WIDGETS>

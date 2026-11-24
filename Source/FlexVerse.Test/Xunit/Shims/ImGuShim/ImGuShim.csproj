@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Runtime-only shim of UnityEngine.IMGUIModule for the core xunit suite
+    (see UnityShim.csproj). Only the GUI surface FlexVerse.dll references
+    (GUI, GUIStyle, GUIContent, GUIUtility) is reproduced, inert. Rect/Color/
+    Texture identities come from the Krafs reference assemblies at compile
+    time (compile-only package reference) and from the UnityShim CoreModule
+    shim at runtime.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>UnityEngine.IMGUIModule</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <RootNamespace>UnityEngine</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <!-- Krafs.Rimworld.Ref is net472 assets on net10.0 by design => NU1701 expected. -->
+    <NoWarn>$(NoWarn);NU1701</NoWarn>
+    <!-- The shim intentionally re-types UnityEngine GUI types already visible
+         through Krafs reference assemblies; the compiler resolves to the shim. -->
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference
+      Include="Krafs.Rimworld.Ref"
+      Version="1.6.4871"
+      PrivateAssets="all"
+      ExcludeAssets="runtime"
+    />
+  </ItemGroup>
+</Project>

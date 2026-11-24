@@ -1,0 +1,48 @@
+<!-- parents: @.frostline/graph/ss-source-generators.xml -->
+<M-REACTIVITY-ANALYZER>
+  <Purpose>Static analysis stage of the widget generator: extract widget declarations and Build method bodies from the AST, infer reactivity flags, and report diagnostic rules including FV0001.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Roslyn extraction of widget partial classes, properties and Build bodies.</SCP-IN-001>
+    <SCP-IN-002>Reactivity flag inference per property usage.</SCP-IN-002>
+    <SCP-IN-003>Diagnostic rule evaluation and reporting (FV0001 and siblings).</SCP-IN-003>
+    <SCP-OUT-002>Interprocedural parameter data flow, delegate invocation, static helpers, virtual dispatch, base calls, calls through other receivers and helpers outside the analyzed declaring type.</SCP-OUT-002>
+    <SCP-OUT-001>Source text emission — owned by M-WIDGET-EMITTER.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Reactivity inference starts at locally declared BuildRenderTree and MeasureFunc and identifies instance properties declared on the analyzed class by Roslyn symbol identity.</REQ-001>
+    <REQ-002>Invalid reactive usage reports FV0001 with a location pointing at the offending syntax.</REQ-002>
+    <REQ-003>Valid widget declarations produce zero FV* diagnostics.</REQ-003>
+    <REQ-004>PropertyExtractor resolves the original declaration through overridden symbols and records its containing type as SlotOwner.</REQ-004>
+    <REQ-005>Analysis follows source-defined non-static, non-virtual, non-override methods and getters on the same declaring type through implicit or explicit this receivers, and directly called non-static local functions. Traversal has no depth limit and visits each symbol once per entry point to terminate recursive chains.</REQ-005>
+    <REQ-006>BuildRenderTree property references infer ReconcileOnSet; direct Value member reads additionally infer ReconcileOnUpdate. MeasureFunc property references infer MarkDirtyOnSet and MarkDirtyOnUpdate. Explicit attribute arguments override inferred defaults.</REQ-006>
+    <REQ-007>Construction analysis skips anonymous function bodies and uncalled local function declarations. Measurement analysis includes the entry property's first-level anonymous function bodies and skips nested anonymous functions; helper bodies retain the measurement context.</REQ-007>
+    <REQ-008>All branches of a visited body contribute dependencies without execution-path feasibility or alias analysis. Dependencies outside the supported traversal require explicit attribute flags.</REQ-008>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>compilation/partial classes: Roslyn syntax and semantic models.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>widget models: schema owned by M-WIDGET-MODELS.</OUT-001>
+      <OUT-002>diagnostics: FV0001 for invalid Widget declarations.</OUT-002>
+    </Outputs>
+    <SideEffects>
+      <None />
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `WidgetExtractor.Build` -> `WidgetModel`
+* `HeaderExtractor.Extract` + `HierarchyExtractor.Extract` + `UsingExtractor.Extract` + `PropertyExtractor.Extract`
+* `AttributeReader.TryResolveKind` + `BehaviorReader`
+* `ReactivityAnalyzer.{AnalyzeClassDefaults|Defaults|ResolveReactivity|UsageFacts}`
+* `DiagnosticEngine.Run` -> `IRule` -> `TypeMustBePartialRule.Check`
+* `DiagnosticRules` => FV0001
+* `WidgetExtractor.Build` + `ReactivityAnalyzer.ResolveReactivity` -> `WidgetModel` + `PropertyModel`
+]]>
+  </Codemap>
+</M-REACTIVITY-ANALYZER>

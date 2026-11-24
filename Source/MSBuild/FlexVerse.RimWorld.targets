@@ -1,0 +1,23 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <Target Name="DeployToModFolder" AfterTargets="Build" Condition="'$(ModName)' != ''">
+    <PropertyGroup>
+      <ModAssembliesDir>$(ModsDir)$(ModName)\Assemblies\</ModAssembliesDir>
+    </PropertyGroup>
+    <Message Text="Copying $(AssemblyName) to $(ModAssembliesDir)" Importance="High" />
+    <MakeDir Directories="$(ModAssembliesDir)" />
+    <Copy
+      SourceFiles="$(TargetDir)$(AssemblyName).dll"
+      DestinationFolder="$(ModAssembliesDir)"
+      OverwriteReadOnlyFiles="true"
+      SkipUnchangedFiles="true"
+    />
+    <Copy
+      SourceFiles="$(TargetDir)$(AssemblyName).pdb"
+      DestinationFolder="$(ModAssembliesDir)"
+      OverwriteReadOnlyFiles="true"
+      SkipUnchangedFiles="true"
+      Condition="Exists('$(TargetDir)$(AssemblyName).pdb')"
+    />
+  </Target>
+</Project>

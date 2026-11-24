@@ -1,0 +1,73 @@
+<!-- parents: @.frostline/graph/s-verification.xml -->
+<M-EXPLORER>
+  <Purpose>Interactive verification and capability demonstration surface of the FlexVerse.Test mod: an in-game Explorer window that discovers screen widgets by path, navigates them, and renders each screen through FVUI. Minimal test scenarios complement automated Pickle runs; showcases demonstrate the framework's expressive power.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>ExplorerMod entry, ModSettings-backed DebugData persistence (last visited screen).</SCP-IN-001>
+    <SCP-IN-002>ScreenAttribute path declarations and ExplorerRegistry discovery/assembly scanning over loaded mod assemblies.</SCP-IN-002>
+    <SCP-IN-003>Explorer window: header navigation (back/prev/next/breadcrumbs), directory listing, screen hosting, error screens.</SCP-IN-003>
+    <SCP-IN-004>Rendering through the FVUI facade under the stable context key "explorer".</SCP-IN-004>
+    <SCP-IN-005>Minimal test scenarios under Scenarios/ and capability demonstrations under Showcases/, with their supporting components.</SCP-IN-005>
+    <SCP-OUT-001>Automated scenario execution — owned by M-PICKLE.</SCP-OUT-001>
+    <SCP-OUT-002>Framework rendering and reconciliation — owned by M-WIDGET-ENGINE via M-FVUI.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Explorer dogfoods the framework exclusively: no Verse IMGUI beyond the host Window chrome; content renders through FVUI.</PRIN-001>
+    <PRIN-002>Discovery is declaration-driven: a screen exists iff its class carries ScreenAttribute(path) and derives from Widget.</PRIN-002>
+    <PRIN-003>The explorer engine is addressable like any host context — one stable key, lifecycle owned by EngineRegistry.</PRIN-003>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>ExplorerRegistry scans loaded mod assemblies exactly once (cached tree) and tolerates unloadable types via ReflectionTypeLoadException filtering.</REQ-001>
+    <REQ-002>Explorer navigation preserves the navigation stack; switching screens resets the FVUI context with Render(key, Rect.zero, null) before mounting the next instance.</REQ-002>
+    <REQ-003>Closing the Explorer releases the engine via FVUI.Release so no zombie engine survives the window (M-ENGINE-REGISTRY.PRIN-001).</REQ-003>
+    <REQ-004>A screen class that fails to instantiate renders an error screen instead of breaking the Explorer.</REQ-004>
+    <REQ-005>The interactive log opt-out (FlexVerse.Log.Enabled = false) applies only when the game is NOT launched with -pickle-run; automated Pickle runs keep [FV][M- markers flowing to Player.log (evidence contract, S-VERIFICATION.PRIN-002).</REQ-005>
+    <REQ-006>Interactive-only Harmony patches (same -pickle-run guard as REQ-005): the Explorer window auto-opens on the first reachable scene (Messages.Notify_LoadedLevelChanged postfix), and the dev log window's error auto-open is suppressed (EditWindow_Log.TryAutoOpen prefix) so expected no-Steam startup errors do not steal focus — messages still reach Player.log; automated runs patch nothing.</REQ-006>
+    <REQ-007>Each test scenario under Scenarios/ is a minimal declarative usage example demonstrating one idea with only the necessary state, actions and components. Its source and rendered interface must each fit on one screen and make the interaction and expected result understandable without reading fixture internals.</REQ-007>
+    <REQ-008>Reusable fixtures encapsulate supporting complexity so test scenarios remain minimal. Fixture complexity is determined by the support they provide and is not subject to the test-scenario one-screen limit.</REQ-008>
+    <REQ-009>Test scenarios, showcase components and fixtures are reference implementations for framework users: they must demonstrate correct, reliable component authoring. Test-scenario brevity must not depend on fragile shortcuts or hidden execution assumptions; moving code into a fixture does not relax this obligation.</REQ-009>
+    <REQ-010>Showcases under Showcases/ demonstrate the breadth and depth of FlexVerse through ambitious, visually coherent compositions: nested reactive layout, behavior composition, orchestration and lifecycle. The minimality and one-screen-source limits of REQ-007 apply to test scenarios, not showcases.</REQ-010>
+    <REQ-011>Showcase complexity must come from meaningful framework interactions rather than artificial layers or independently animated primitive counts. Entry widgets may delegate to named components, but the composition, state ownership and orchestration must remain understandable from their source. Rendering must fit the showcase's intended Explorer screen.</REQ-011>
+    <REQ-012>Explorer contains authored demonstration scenarios for transformed/clipped layout, local ZIndex, CanvasView, appearance layers and controlled input contracts; these scenarios are not evidence of passing native Unity/Waylith verification until independently executed.</REQ-012>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>ScreenAttribute(path) declarations on Widget subclasses across loaded mod assemblies.</IN-001>
+      <IN-002>Host window rect from the RimWorld WindowStack.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Explorer window hosting the selected screen tree.</OUT-001>
+      <OUT-002>Persisted lastExplorerScreenPath in mod settings.</OUT-002>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Writes mod settings on every screen switch.</EFF-001>
+      <EFF-002>Registers/releases the "explorer" engine in EngineRegistry.</EFF-002>
+    </SideEffects>
+  </Contract>
+
+<Codemap>
+<![CDATA[
+
+* `ExplorerMod` -> `ExplorerRegistry.RootNode` + `Explorer.ToggleWindow`
+* `ExplorerMod` -> `Log.Enabled` + `ExplorerPatches`
+* `ExplorerPatches.Messages.Notify_LoadedLevelChanged` -> `Explorer.ToggleWindow`
+* `ExplorerPatches.EditWindow_Log.TryAutoOpen` => `false`
+* `ScreenAttribute` -> `ExplorerRegistry` -> `ExplorerNode`
+* `Explorer.DoWindowContents` -> `Explorer.DoExplorerView` | `Explorer.DoScreenView` -> `FVUI.Render`
+* `Explorer.PostClose` -> `FVUI.Release`
+* `Explorer.{GoToNode|GoBack|SwitchScreen}` -> `Explorer.ActivateScreen`
+* `DebugData.lastExplorerScreenPath` -> `ExplorerSettings`
+* `ScenarioHost` -> `Scenario` -> `BehaviorDisplay`
+* `LabelTest` + `ViewTest` + `CanvasViewTest` + `TextFieldTest` + `CheckboxTest` + `HorizontalSliderTest` + `AreaSliderTest` -> `ScenarioHost`
+* `BentoDashboard` -> `BentoSection` -> `BentoCard` + `BentoPresentation`
+* `TrafficFlow` + `TrafficMotion` -> `TrafficTile`
+* `ViewBoxShadowScenario` + `ViewBorderRadiusScenario` + `ViewBorderScenario` + `ViewBackgroundImageScenario` -> `View`
+* `TextFieldValueScenario` + `TextFieldPlaceholderScenario` + `TextFieldValidatorScenario` -> `TextField`
+* `CanvasViewPanScenario` + `CanvasViewZoomScenario` -> `CanvasView`
+* `CheckboxCheckedScenario` + `HorizontalSliderValueScenario` + `AreaSliderValueScenario`
+]]>
+  </Codemap>
+</M-EXPLORER>

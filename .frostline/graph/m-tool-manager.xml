@@ -1,0 +1,36 @@
+<!-- parents: @.frostline/graph/p-flextools.xml -->
+<M-TOOL-MANAGER>
+  <Purpose>Tool discovery and lifecycle: static registry initialized from the [Tool(id)] assembly scan, driven by the FlexTools mod entry with persisted enablement settings.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>ToolManager: static registry, Initialize/Shutdown, per-tool enablement.</SCP-IN-001>
+    <SCP-IN-002>FlexToolsMod: RimWorld Mod entry point.</SCP-IN-001>
+    <SCP-IN-003>FlexToolsSettings: ModSettings persistence of tool enablement.</SCP-IN-001>
+    <SCP-OUT-001>Tool contract — owned by M-TOOL.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Tool enablement state persists across sessions via FlexToolsSettings.</REQ-001>
+    <REQ-002>Initialize/Shutdown are idempotent per tool: a disabled tool is never initialized.</REQ-002>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>mod assembly: scanned for ToolAttribute-decorated Tool types.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>initialized tool instances available for the lifetime of the session.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Invokes Tool.Initialize/Tool.Shutdown on managed tools.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `ToolManager.{Initialize|Shutdown}` -> `Tool.{Initialize|Shutdown}`
+* `ToolManager` -> `ToolAttribute` scan => registry
+* `FlexToolsMod` : `Mod` -> `ToolManager.Initialize`
+* `FlexToolsSettings` : `ModSettings` => tool enablement]]>
+  </Codemap>
+</M-TOOL-MANAGER>

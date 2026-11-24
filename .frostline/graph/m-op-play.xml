@@ -1,0 +1,21 @@
+<!-- parents: @.frostline/graph/s-verification.xml -->
+<M-OP-PLAY>
+  <Purpose>The manual play operation: stage the composition, build, and run the game with GUI passthrough in the same container as test runs — no scenarios, no verdict.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Scripts/play: --profile local|ci, --vm, --stop CONTAINER; the flow is the shared game_pipeline minus the verdict plane, declared inline in the command file.</SCP-IN-001>
+    <SCP-OUT-001>GUI backend detection and container mechanics — owned by M-GAME.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Play runs the same container configuration as test runs; only the entrypoint and mounts differ.</REQ-001>
+    <REQ-002>Play never writes report.json or diff.json: Player.log in the run directory is the only evidence.</REQ-002>
+    <REQ-003>Exit code is always 0: play has no verdict plane.</REQ-003>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `main` -> `parse_args` -> `--stop` ? `vm_stop` : `game_pipeline(spec)` -> `run_play` / `run_play_vm` => 0
+* `#!/usr/bin/env -S uv run --script` : invocation]]>
+  </Codemap>
+</M-OP-PLAY>

@@ -1,0 +1,75 @@
+<!-- parents: @.frostline/graph/ss-source-generators.xml -->
+<M-FLEXVERSE-PROPERTY>
+  <Purpose>[FVP] (FlexVerseProperty) generator pipeline: reactive Behavior-typed property generation for ordinary non-Widget classes.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>FvpProvider: incremental discovery of ordinary classes with local or inherited FVP slots, selected by its own IsWidget predicate; FV0002 for non-partial types, including inherited-only owners.</SCP-IN-001>
+    <SCP-IN-002>Pipeline-local FvpExtractor, StructureModel, TypeIdentity, Initializer and declaration extractors; FvpModel schema and FvpEmitter: generated _{Prop} counterparts with SemEquals guard, Changing/Changed events, UnionWith, BehaviorRegistry reference counting, lazy BehaviorUpdater subscription and Reset-on-release.</SCP-IN-002>
+    <SCP-IN-003>Fvp explicitly emits reactive property fields, getters and setters, EnsureFvpInitialized emits lazy initialization; ActivateBehavior, ReleaseBehavior and ReleaseBehaviors emit single-behavior and local-slot lifecycle operations; ReleaseFvp emits terminal owner cleanup, and Refs/BindRefs/WatchRefs each emit their corresponding public API.</SCP-IN-003>
+    <SCP-OUT-001>Widget-specific lifecycle, signals and inherited-context behavior — owned by M-WIDGET-EMITTER.</SCP-OUT-001>
+    <SCP-OUT-002>IL redirection of [FVP] auto-properties — owned by M-PROPERTY-WEAVER.</SCP-OUT-002>
+    <SCP-OUT-003>Behavior tick scheduling and registries — owned by S-RUNTIME-PLATFORM.</SCP-OUT-003>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Each property emitter explicitly describes its complete getter and setter; ordinary FVP and Widget keep their owner lifecycle transitions local, without callback-based property templates.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>[FVP] on a Behavior-typed auto-property of a partial class emits _{Prop} with Get/Set counterparts; ordinary FVP owners use their own initialization and release lifecycle.</REQ-001>
+    <REQ-002>The generated setter short-circuits on SemEquals, invokes Changing/Changed, unions the previous behavior, increments/decrements BehaviorRegistry and resets the old behavior on last release (mirrors ActivateBehavior/ReleaseBehavior).</REQ-002>
+    <REQ-003>A newly activated behavior subscribes to BehaviorUpdater lazily via OnStart and unsubscribes via OnComplete.</REQ-003>
+    <REQ-004>A non-partial type using [FVP] reports FV0002 and generates nothing.</REQ-004>
+    <REQ-005>FvpProvider uses its local IsWidget predicate to exclude Widget classes, preserving exclusive type ownership per SS-SOURCE-GENERATORS.REQ-001.</REQ-005>
+    <REQ-006>FVPAttribute is the root of the reactive attribute family; [Prop]/[State]/[InheritedContext] subclass it (Attributes, M-WIDGET).</REQ-006>
+    <REQ-007>Generated setters log behavior state changes under the M-FLEXVERSE-PROPERTY module marker.</REQ-007>
+    <REQ-008>FVP generates IPropertyRef-compatible Refs, Bind and Watch surfaces, including typed Get/Set and slot Changing/Changed events. Behavior value types are resolved through the Behavior inheritance chain, independently of concrete class generic arity.</REQ-008>
+    <REQ-009>The root FVP owner exposes idempotent terminal ReleaseFvp, inherited by derived owners: it marks the entire owner released, unregisters subscriptions once and invokes ReleaseBehaviors through virtual dispatch. Internal ReleaseBehaviors clears registered local slots and chains to the base; ReleaseBehavior resets only on final release. Generated reactive access after release throws ObjectDisposedException, including through base slots.</REQ-009>
+    <REQ-010>Ordinary FVP initializers are registered and activated lazily on first generated reactive access, including property-ref reads. EnsureFvpInitialized chains through the FVP base before activating local slots; unaccessed owners hold no registered behaviors. Null/default initializers are normalized as absent values.</REQ-010>
+    <REQ-011>Inherited FVP slots remain owned by their declaring class. FvpExtractor explicitly supplies HasFvpBase independently of visible inherited properties, so hidden base slots retain lifecycle ownership. Derived EnsureFvpInitialized and ReleaseBehaviors chain to their base implementations; inherited-only types receive their own reference surfaces without duplicate slot storage.</REQ-011>
+    <REQ-012>Widget property emitters explicitly generate their specialized lifecycle semantics, without the ordinary FVP emitter knowing Widget.</REQ-012>
+    <REQ-013>FvpExtractor supplies declaration names and Behavior value-type identity from Roslyn symbols. Models and emitters must not recover generic arguments by parsing C# type-name strings.</REQ-013>
+    <REQ-014>Overrides retain the base slot storage and lifecycle, inherit FVP classification when not repeated, and receive local property-ref adapters that dispatch through the public override. Refs, Bind and Watch use explicit hiding modifiers when a FVP base surface exists; named and string-indexed Refs cover the same visible local and inherited slots.</REQ-014>
+    <REQ-015>ReleaseBehaviors clears each populated local slot with Changing and Changed notifications before decrementing and possibly resetting its previous Behavior, so observers can interrupt before a Reset-triggered OnComplete. Empty slots are not signaled.</REQ-015>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>compilation/partial classes: Roslyn syntax and semantic models.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>generated C# partial classes with _{Prop} counterparts added to the compilation.</OUT-001>
+      <OUT-002>diagnostics: FV0002 for non-partial types.</OUT-002>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Generated setters mutate behavior lifecycle at runtime through FlexVerseRoot (BehaviorRegistry, BehaviorUpdater) when the set property is assigned.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `FvpProvider.CreatePipeline` -> `FvpExtractor.HasFvpProperties` + `FvpPipeline.Run`
+* `FvpPipeline.Run` -> `DiagnosticEngine.Run` + `FvpExtractor.Build` -> `FvpModel`
+* `FvpEmitter.Emit(FvpModel)` => generated `.g.cs`
+* `FvpAttributeReader.HasFvpAttribute` + `FvpPropertyExtractor.Extract` -> `FvpPropertyModel`
+* `DiagnosticEngine.Run` -> `IRule` -> `TypeMustBePartialRule.Check` => FV0002
+* `FvpPropertyModel` -> `FieldName` | `LogicName` => `_Set{Prop}`
+* `Refs.Emit` -> `IPropertyRef<T>`; `BindRefs.Emit` -> `BindRef`; `WatchRefs.Emit` -> `WatchRef`
+* `IFvpMemberEmitter.Emit` -> `Fvp` + `EnsureFvpInitialized` + `ActivateBehavior` + `ReleaseBehavior` + `ReleaseBehaviors` + `ReleaseFvp` + `Refs` + `BindRefs` + `WatchRefs`
+* `Fvp.Emit` -> `Fvp.EmitProperty` -> `Fvp.EmitGetter` + `Fvp.EmitSetter`
+* `Refs.Emit` -> `Refs.EmitPropertyRefStruct`
+* `ReleaseFvp.Emit` -> `ReleaseFvp` -> `BehaviorRegistry.UnregisterSubscriptions` + `ReleaseBehaviors`
+* `ReleaseBehaviors` -> `base.ReleaseBehaviors` + `ReleaseBehavior` -> `BehaviorRegistry.Decrement` => `Behavior.Reset`
+* `EnsureFvpInitialized` -> `base.EnsureFvpInitialized` + `ActivateBehavior`
+* `ActivateBehavior` -> `BehaviorRegistry.Increment` + `Behavior.Activate`
+* `FvpAttributeReader.HasFvpAttribute` -> `IPropertySymbol.OverriddenProperty`
+* `FvpProvider.CreatePipeline` -> `FvpProvider.IsWidget`
+* `UsingExtractor.Extract` + `HierarchyExtractor.Extract` + `HeaderExtractor.Extract` -> `FvpModel`
+* `FvpExtractor.Build` -> `FvpPropertyExtractor.Extract` -> `BehaviorReader.Read` -> `TypeIdentity`
+* `_Set{Prop}` -> `SemEquals` + `UnionWith` + `BehaviorRegistry.{Increment|Decrement}` => `BehaviorUpdater.{Subscribe|Unsubscribe}` + `Behavior.Activate` + `Behavior.Reset`
+* `FlexVerse.Log.Debug` => `M-FLEXVERSE-PROPERTY`
+* `FVPAttribute` : `Attribute` <= `{PropAttribute|StateAttribute|InheritedContextAttribute}`
+* `ModuleWeaver` => `FvpAttribute` redirect seam
+]]>
+</Codemap>
+</M-FLEXVERSE-PROPERTY>

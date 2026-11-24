@@ -1,0 +1,35 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-CLIP-SERVICE>
+  <Purpose>Read-only local and ancestor clip queries over the published geometry snapshot.</Purpose>
+  <Scope>
+    <SCP-IN-001>Local child clip and ancestor clip queries over WidgetGeometrySnapshot.</SCP-IN-001>
+    <SCP-IN-002>GetLocalChildrenClip, ContainsChildrenPoint, IsVisible and GetClips.</SCP-IN-002>
+    <SCP-OUT-001>Native GUI execution: WidgetRenderer owns standard child clips; concrete widgets own their specialized native child contexts.</SCP-OUT-001>
+    <SCP-OUT-002>Rounded, arbitrary-path or offscreen subtree clipping.</SCP-OUT-002>
+  </Scope>
+  <Requirements>
+    <REQ-001>Published non-visible Overflow restricts descendants to the local padding box; visible Overflow admits descendants without a clip.</REQ-001>
+    <REQ-002>ClipRegion uses the published owner World matrix before the child-space transform; containment uses TransformService to map the point into owner-local coordinates.</REQ-002>
+    <REQ-003>Only ancestors clip a widget's own hit surface; children and hit testing use the same owner-local clip rectangles.</REQ-003>
+    <REQ-004>Nested clip intersections preserve the ordered list of ancestor regions rather than approximating their intersection by one screen bounding box.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>WidgetGeometrySnapshot and TransformService coordinate queries.</IN-001>
+      <IN-002>Pointer position in screen coordinates for visibility checks.</IN-002>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Owner-local child clip bounds, ancestor ClipRegions and point-containment results.</OUT-001>
+    </Outputs>
+    <SideEffects><None /></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `ClipService` -> `WidgetGeometrySnapshot.TryGet`
+* `ClipService.GetLocalChildrenClip` -> `WidgetGeometry.LocalClip`
+* `ClipService.ContainsChildrenPoint` -> `WidgetGeometry.ClipsChildren` + `TransformService.TryToLocal`
+* `ClipService.IsVisible` + `ClipService.GetClips` -> `WidgetGeometry.Parent`
+* `ClipService.GetClips` -> `ClipRegion`
+]]>
+  </Codemap>
+</M-CLIP-SERVICE>

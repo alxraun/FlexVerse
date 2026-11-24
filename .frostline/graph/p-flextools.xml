@@ -1,0 +1,39 @@
+<P-FLEXTOOLS>
+  <Purpose>FlexTools: developer tooling for inspecting and diagnosing any RimWorld mod, including mods that do not use FlexVerse. FlexVerse provides the tooling UI foundation. Tools serve both in-game interfaces and programmatic consumers through shared diagnostic capabilities and machine-readable results.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Tool extension contract and registry (M-TOOL, M-TOOL-MANAGER) as direct project-level modules.</SCP-IN-001>
+    <SCP-IN-002>Concrete tools hosted as systems (currently S-WIDGET-DEBUGGER; future profiler and behavior debugger follow the same shape).</SCP-IN-002>
+    <SCP-IN-003>Programmatic diagnostic sessions and text export for automation consumers, including the verification plane.</SCP-IN-003>
+    <SCP-IN-004>General-purpose tools target arbitrary RimWorld mods; individual tools may specialize in FlexVerse concepts such as widgets, behaviors and reactive properties.</SCP-IN-004>
+    <SCP-OUT-001>Framework runtime behavior — FlexTools consumes P-FLEXVERSE as a dependency and never modifies its contracts.</SCP-OUT-001>
+    <SCP-OUT-002>Test suites — deferred to the verification plane.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>One mod = one project: tools are S-* systems with their own decomposition; a simple future tool may be a single M-* directly under P-FLEXTOOLS, like M-TOOL.</PRIN-001>
+    <PRIN-002>Tools integrate with the host only through the M-TOOL contract: WidgetInspector : Tool, [Tool(id)] => ToolManager.</PRIN-002>
+    <PRIN-003>Runtime observation preserves the target's functional behavior; instrumentation may incur measurement overhead. Targets may belong to any mod or the game.</PRIN-003>
+    <PRIN-004>Dependencies on P-FLEXVERSE are expressed by shared symbols in Codemap and FQID in Requirements, never by cross-project parents.</PRIN-004>
+    <PRIN-005>Tool interfaces and programmatic consumers share diagnostic capabilities; programmatic collection and export do not require opening an in-game window.</PRIN-005>
+    <PRIN-006>Optional diagnostic integrations isolate their dependencies: an unavailable or incompatible external mod disables the dependent capability without preventing other tools from loading.</PRIN-006>
+  </Principles>
+
+  <Technology>
+    <TECH-001>C# on .NET Framework 4.8 in RimWorld and Unity, same runtime as P-FLEXVERSE.</TECH-001>
+    <TECH-002>Harmony for observation and instrumentation of target code.</TECH-002>
+    <TECH-003>Inspector UI built with FlexVerse widgets (framework dogfooding).</TECH-003>
+  </Technology>
+
+  <Codemap>
+<![CDATA[
+* `ToolAttribute(id)` -> `ToolManager.{Initialize|Shutdown}` -> `Tool.{Initialize|Shutdown}`
+* `FlexToolsMod` : `Mod` -> `FlexToolsSettings` : `ModSettings`
+* `{WidgetInspector}` : `Tool`
+* `InspectorApp` + `{HierarchyTree|PropertyRow|BehaviorItem}` : `Widget`
+* `Patch_WidgetEngine_Main` + `Patch_Root_OnGUI` -> `WidgetEngine.ProcessUI` + `Root.OnGUI`
+* `WidgetInspector.Observe` -> `IPropertyRef.Changed` + `WatchRef.OnUpdate`
+* `WidgetInspector.CreateApp` -> `EngineRegistry.List`
+* `InspectorIsolation.IsIsolated` -> `WidgetEngine.Key` + `WidgetEngine.GetRoot`]]>
+  </Codemap>
+</P-FLEXTOOLS>

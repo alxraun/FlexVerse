@@ -1,0 +1,36 @@
+<!-- parents: @.frostline/graph/ss-widget-library.xml -->
+<M-CANVAS-VIEW-WIDGET>
+  <Purpose>Viewport container with independent two-dimensional Pan and uniform Zoom of its child coordinate space, preserving Flexbox layout.</Purpose>
+  <Scope>
+    <SCP-IN-001>CanvasView and reactive Pan, Zoom, MinZoom, MaxZoom Props.</SCP-IN-001>
+    <SCP-IN-002>Mouse pan and wheel zoom through FlexEvent and TransformService-local pointer coordinates.</SCP-IN-002>
+    <SCP-OUT-001>Common child clip and exact hit testing — owned by M-CLIP-SERVICE and M-TRANSFORM-SERVICE.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>GetChildrenTransform composes child-only translation and uniform scale; self drawing and Flexbox layout remain unchanged.</REQ-001>
+    <REQ-002>Zoom is finite, strictly positive and clamped to effective MinZoom/MaxZoom without rewriting the external source Behavior.</REQ-002>
+    <REQ-003>Wheel zoom keeps the content point under the pointer fixed when calculating the new Pan.</REQ-003>
+    <REQ-004>Pan begins on middle mouse or on empty-canvas left mouse, not on descendant-owned gestures; nested ScrollView owns its scroll wheel.</REQ-004>
+    <REQ-005>CanvasView defaults to hidden overflow; drag ownership ends on release, leave and unmount.</REQ-005>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>Pan, Zoom, MinZoom, MaxZoom Behaviors and FlexEvent pointer events.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Child-space Matrix4x4 from GetChildrenTransform.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Own pan and zoom Props update in response to recognized gestures.</EFF-001>
+    </SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `CanvasView` : `Widget`
+* `CanvasView.{Pan|Zoom|MinZoom|MaxZoom}` : `Behavior<T>`
+* `CanvasView.GetChildrenTransform` -> `Matrix4x4.Translate` + `Matrix4x4.Scale`
+* `CanvasView.OnMouseDown` + `CanvasView.OnMouseDrag` + `CanvasView.OnMouseUp` + `CanvasView.OnMouseLeave`
+* `CanvasView.OnScrollWheel` -> `TransformService.TryToLocal` -> `CanvasView.Zoom` + `CanvasView.Pan`
+]]>
+  </Codemap>
+</M-CANVAS-VIEW-WIDGET>

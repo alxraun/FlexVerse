@@ -1,0 +1,35 @@
+<!-- parents: @.frostline/graph/s-metaprogramming.xml -->
+<SS-SOURCE-GENERATORS>
+  <Purpose>Roslyn source generation for Widget and ordinary FVP classes: select supported types independently in each pipeline, analyze declarations and emit reactive partial implementations.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Shared generator entry point and source-building infrastructure — owned by M-SOURCE-GENERATORS-COMMON.</SCP-IN-001>
+    <SCP-IN-002>Widget analysis, models and member emission — owned by M-REACTIVITY-ANALYZER, M-WIDGET-MODELS and M-WIDGET-EMITTER.</SCP-IN-002>
+    <SCP-IN-003>Ordinary FVP discovery, analysis and emission — owned by M-FLEXVERSE-PROPERTY.</SCP-IN-003>
+    <SCP-OUT-001>Post-compilation property redirection — owned by SS-IL-WEAVING.</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Analysis and emission are separate contracts: analyzers produce models and emitters consume them without re-parsing source text.</PRIN-001>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Exactly one pipeline owns each supported type: Widget classes use the Widget pipeline and ordinary FVP classes use the FVP pipeline.</REQ-001>
+    <REQ-002>Valid input produces compilable generated code; invalid generated code is a generator defect rather than a user diagnostic.</REQ-002>
+    <REQ-003>Emission is deterministic: identical models produce identical source text.</REQ-003>
+    <REQ-004>Each source-generator member emitter must be named after the generated code symbol it owns, preserving that symbol's spelling (for example EnsureFvpInitialized, ReleaseFvp, BindRefs). An emitter for a family of reactive properties must instead use the corresponding property-category name (Fvp, Prop, State, InheritedContext) and own the complete property structure, including backing fields, change notifications, getter and setter. Pipeline orchestrators and shared emission helpers are outside this member-emitter naming rule.</REQ-004>
+    <REQ-005>Each pipeline must own its models, extractors, diagnostics, member emitters and type-selection predicates, without dependencies on the other pipeline. Local duplication is permitted to preserve these boundaries. Shared utilities must contain only pipeline-neutral operations; Widget/FVP selection and behavior contracts remain local to their pipelines.</REQ-005>
+    <REQ-006>Analysis supplies structured type identity, declaration names and lifecycle ownership decisions to emitters; emission consumes these verdicts without parsing generated C# strings.</REQ-006>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `FlexVerseGenerator` -> `WidgetProvider.CreatePipeline` | `FvpProvider.CreatePipeline`
+* `WidgetProvider.CreatePipeline` -> `WidgetProvider.IsWidget`
+* `FvpProvider.CreatePipeline` -> `FvpProvider.IsWidget`
+* `WidgetPipeline.Run` -> `WidgetModel` -> `WidgetEmitter.Emit`
+* `FvpPipeline.Run` -> `FvpModel` -> `FvpEmitter.Emit`
+* `CodeBuilder` -> `WidgetEmitter.Emit` | `FvpEmitter.Emit`
+]]>
+  </Codemap>
+</SS-SOURCE-GENERATORS>

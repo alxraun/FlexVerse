@@ -1,0 +1,51 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-ENGINE-REGISTRY>
+  <Purpose>Central catalog and lifecycle manager of active WidgetEngine instances keyed by unique strings, enabling deterministic multi-engine addressing for tests, scripts, and runtime hosts.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>EngineRegistry static class: GetOrCreate, Get, TryGet, Release, Contains, List, Clear.</SCP-IN-001>
+    <SCP-IN-002>Engine lifecycle coordination: automatic registration and explicit Shutdown upon release.</SCP-IN-002>
+    <SCP-OUT-001>Per-frame pipeline execution — owned by M-WIDGET-ENGINE.</SCP-OUT-001>
+    <SCP-OUT-002>Host rect routing and rendering facade — owned by M-FVUI.</SCP-OUT-002>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>No zombie engines: Release triggers WidgetEngine.Shutdown() and drops references so hosts are collectable.</PRIN-001>
+    <PRIN-002>Idempotent acquisition: GetOrCreate returns the existing live engine or registers a new instance atomically.</PRIN-002>
+    <PRIN-003>Read purity: Get, TryGet, Contains, and List never mutate engine state or trigger reconciliations.</PRIN-003>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>Key validation: Every key must be a non-null, non-whitespace string; invalid keys throw ArgumentException.</REQ-001>
+    <REQ-002>GetOrCreate(key) returns the existing WidgetEngine for key if present; otherwise creates new WidgetEngine(key), registers it, and returns the instance.</REQ-002>
+    <REQ-003>Get(key) returns the registered WidgetEngine instance, or null if the key is not registered. It MUST NOT throw KeyNotFoundException.</REQ-003>
+    <REQ-004>TryGet(key, out WidgetEngine engine) returns true and assigns engine if found; otherwise assigns null and returns false.</REQ-004>
+    <REQ-005>Release(key) invokes WidgetEngine.Shutdown() on the matching engine and removes it from the catalog, returning true. Releasing an unregistered key returns false without throwing.</REQ-005>
+    <REQ-006>Contains(key) returns true if an engine with the given key is currently registered, false otherwise.</REQ-006>
+    <REQ-007>List() returns an immutable snapshot (IReadOnlyCollection&lt;WidgetEngine&gt;) of all currently live engines.</REQ-007>
+    <REQ-008>Clear() invokes Shutdown() on every registered engine and empties the registry.</REQ-008>
+    <REQ-009>Thread-safety: Registry operations are thread-safe (e.g. backed by ConcurrentDictionary&lt;string, WidgetEngine&gt; or lock).</REQ-009>
+  </Requirements>
+
+  <Contract>
+    <Inputs>
+      <IN-001>key: string — stable unique identifier of the UI context (e.g., "window:trade", "gizmo:draft").</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>WidgetEngine — resolved or newly instantiated engine instance.</OUT-001>
+      <OUT-002>IReadOnlyCollection&lt;WidgetEngine&gt; — live engine snapshot.</OUT-002>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Mutates registry state; invokes Shutdown on released engines.</EFF-001>
+    </SideEffects>
+  </Contract>
+
+  <Codemap>
+<![CDATA[
+* `EngineRegistry.{GetOrCreate|Get|TryGet|Release|Contains|List|Clear}`
+* `EngineRegistry.GetOrCreate(key)` -> `new WidgetEngine(key)` => cache
+* `EngineRegistry.Release(key)` -> `WidgetEngine.Shutdown()` => remove
+* `EngineRegistry` <= `FVUI.Render` + `FVUI.Release` + external inspection (Lua / REPL / tests)
+]]>
+  </Codemap>
+</M-ENGINE-REGISTRY>

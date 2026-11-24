@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>FlexTools</AssemblyName>
+    <RootNamespace>FlexTools</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ModName>FlexTools</ModName>
+    <IsPackable>false</IsPackable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Pinned: 1.7.*-unstable ref assets dropped net48, which breaks restore. -->
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4871" />
+    <PackageReference Include="Lib.Harmony.Ref" Version="*-*" />
+  </ItemGroup>
+  <!-- Both configurations reference FlexVerse as a project. Consuming the
+       packed NuGet artifact is a package-consumption concern, verified by a
+       dedicated downstream test, not by building this tool. -->
+  <Import Project="$(ProjectRoot)Source\MSBuild\FlexVerse.Debug.targets" />
+  <Target Name="DeployAbout" AfterTargets="Build">
+    <Copy
+      SourceFiles="$(MSBuildThisFileDirectory)About\About.xml"
+      DestinationFolder="$(ModsDir)$(ModName)\About\"
+      SkipUnchangedFiles="true"
+    />
+  </Target>
+</Project>

@@ -1,0 +1,69 @@
+# Compiler files
+*.pdb
+*.cache
+*.csproj.user
+*.dll
+*obj/
+*bin/
+
+# IDE
+*.suo
+*.user
+*.userprefs
+*.sln.docstates
+*.sln
+/.idea/
+/.vscode/
+/.vs/
+/.config/
+*.swp
+*.swo
+.cursorindexingignore
+
+# OS temp files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Assemblies and build files
+/Assemblies/*.pdb
+/Source/obj/
+/Source/bin/
+/Source/packages/
+
+# User data files etc.
+*.user
+*.bak
+*.tmp
+*~
+
+# Text editors
+*.log
+*.swp
+
+# Logs
+log/
+
+# Libs
+/lib/
+
+# Temp
+temp/
+.temp/
+tmp/
+.tmp/
+
+# Python
+__pycache__/
+.mypy_cache/
+
+# Build
+.cache/
+
+# Deployed mod assemblies (build artifacts; mod sources stay in git)
+/Mods/*/Assemblies/
+/Mods/*/Pickle/Assemblies/
+/Mods/*/About/
+/Mods/*/Pickle/Features/
+/Source/FlexVerse.Test/Pickle/Modpacks/profiles/compat-*.json
+/.tmp/

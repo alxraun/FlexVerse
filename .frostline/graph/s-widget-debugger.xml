@@ -1,0 +1,37 @@
+<!-- parents: @.frostline/graph/p-flextools.xml -->
+<S-WIDGET-DEBUGGER>
+  <Purpose>Widget Inspector tool: in-game inspector of the live widget tree and its behaviors — property access, behavior adapters, runtime observation via patches, overlays, and a FlexVerse-built inspector UI.</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Tool entry: WidgetInspector : Tool, debugger window and tool settings.</SCP-IN-001>
+    <SCP-IN-002>Read-only property access abstraction (IAccessor) and behavior-type presentation (IBehaviorAdapter).</SCP-IN-002>
+    <SCP-IN-003>Inspection tree building and debug view-models.</SCP-IN-003>
+    <SCP-IN-004>Runtime observation: generated property refs, WatchRef, weak change tracking, public-method Harmony observation, a game hotkey hook and whole-engine isolation.</SCP-IN-004>
+    <SCP-IN-005>IMGUI overlays (box model, change flash) and the inspector UI built on FlexVerse widgets.</SCP-IN-005>
+    <SCP-OUT-001>Tool discovery and lifecycle — owned by M-TOOL and M-TOOL-MANAGER (project-level).</SCP-OUT-001>
+  </Scope>
+
+  <Principles>
+    <PRIN-001>Debugger objects must never appear in or affect the inspected product tree (M-DBG-TRACK isolation).</PRIN-001>
+    <PRIN-002>Inspector UI dogfoods the framework: every debugger widget is a Widget, no separate UI stack.</PRIN-002>
+  </Principles>
+
+  <Requirements>
+    <REQ-001>The inspector tree refreshes from the live WidgetEngine tree while open without forcing extra reconciliations (M-DBG-TRACK.REQ-001).</REQ-001>
+    <REQ-002>Behavior presentation is complete: every Behavior subtype has an IBehaviorAdapter or falls back to DefaultAdapter (M-DBG-ADAPT.REQ-001).</REQ-002>
+    <REQ-003>FlexVerse observation uses a postfix only; the game hotkey prefix consumes only F12. P-FLEXVERSE engine behavior is unchanged (M-DBG-TRACK.REQ-001, P-FLEXTOOLS.PRIN-003).</REQ-003>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `WidgetInspector` : `Tool` -> `InspectorWindow` -> `InspectorApp`
+* `WidgetInspector.Inspect` -> `WidgetEngine.GetChildren` -> `DebugNode` -> `DebugPropertyNode` -> `DebugBehaviorNode`
+* `AccessorFactory.Create` -> `IAccessor.GetValue` | `RefAccessor` | `LambdaAccessor`
+* `DefaultAdapter` : `IBehaviorAdapter` -> `GetSlots`
+* `Patch_WidgetEngine_Main` -> `WidgetInspector.Observe` -> `WidgetInspector.Observe` -> `ChangeTracker`
+* `Patch_Root_OnGUI` -> `WidgetInspector.ToggleWindow`
+* `InspectorIsolation.IsIsolated` -> `WidgetEngine.Key` + `WidgetEngine.GetRoot`
+* `{BoxModelOverlay|FlashOverlay}.Draw`
+* `{HierarchyTree|HierarchyItem|PropertyRow|BehaviorItem|PropertyBadge|SettingsView|InspectorHeader|InspectorFooter|InspectorTabBar|InspectorTabButton|InspectorTitleBar|HierarchyNodeProperties|SettingsToggle}` : `Widget`]]>
+  </Codemap>
+</S-WIDGET-DEBUGGER>

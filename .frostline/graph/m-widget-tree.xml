@@ -1,0 +1,37 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-WIDGET-TREE>
+  <Purpose>Keyed Widget instance hierarchy, parent/child references, layout nodes, identity-preserving moves and a stable sibling paint-order view.</Purpose>
+  <Scope>
+    <SCP-IN-001>WidgetTree create, remove and move instances and their Flexbox nodes.</SCP-IN-001>
+    <SCP-IN-002>Instance lookups, ancestor traversal and stable GetChildrenInPaintOrder.</SCP-IN-002>
+    <SCP-OUT-001>Reconciliation decisions — owned by M-WIDGET-ENGINE.</SCP-OUT-001>
+    <SCP-OUT-002>Rendering and hit-testing traversal — owned by M-WIDGET-ENGINE and M-TRANSFORM-SERVICE.</SCP-OUT-002>
+  </Scope>
+  <Requirements>
+    <REQ-001>Matching declaration keys preserve instance identity across reconciliations.</REQ-001>
+    <REQ-002>RemoveInstance unlinks references so removed instances are collectable; OnUnmount runs before releasing subscriptions and owned Behaviors.</REQ-002>
+    <REQ-003>GetChildrenInPaintOrder orders by increasing ZIndex.Value and retains declaration order for equal values without mutating the instance Child list.</REQ-003>
+    <REQ-004>Paint ordering reads current Behavior.Value, including animated/computed values, independently of Flexbox layout invalidation.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>Widget definitions and parent/position changes.</IN-001>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Widget instances and Flexbox nodes with parent/child links and ordered paint view.</OUT-001>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Instance creation invokes OnMount; removal invokes OnUnmount and releases instance ownership.</EFF-001>
+    </SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `WidgetTree.CreateInstance` + `WidgetTree.RemoveInstance` + `WidgetTree.MoveInstance` -> `WidgetTree.CreateNode`
+* `WidgetTree.{GetRootInstance|GetRootNode|GetNode|GetParentInstance|GetChildInstances|GetInstanceByKey|Contains}`
+* `WidgetGeometryBuilder.Refresh` -> `WidgetTree.GetChildrenInPaintOrder` -> `Widget.ZIndex.Value`
+* `WidgetTree.{FindDeepest|GetAncestorPath|TraverseAncestors}`
+* `WidgetTree.CreateInstance` -> `Widget.OnMount`
+* `WidgetTree.RemoveInstance` -> `Widget.OnUnmount` + `FocusManager.Unregister`
+]]>
+  </Codemap>
+</M-WIDGET-TREE>

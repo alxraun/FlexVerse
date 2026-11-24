@@ -1,0 +1,43 @@
+<Project>
+  <!--
+    Shared mod-assembly configuration for the FlexVerse.Test mod's two
+    branches (Explorer, Pickle). One mod, two assemblies: RimWorld loads
+    everything in Assemblies/; Explorer carries the mod entry, Pickle the
+    harness steps (also hardlinked into the Pickle/Assemblies slot —
+    .NET unifies LoadFrom by assembly identity, so the harness gets the
+    instance RimWorld already loaded).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <DeployRoot>$(MSBuildThisFileDirectory)..\..\.cache\mods\workspace-FlexVerse.Test\FlexVerse.Test\</DeployRoot>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.*" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Lib.Harmony.Ref" Version="*-*" ExcludeAssets="runtime" PrivateAssets="all" />
+    <PackageReference Include="Fody" Version="6.9.2" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\FlexVerse\FlexVerse.csproj" Private="false" />
+    <ProjectReference Include="..\..\FlexVerse.SourceGenerators\FlexVerse.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\FlexVerse.PropertyWeaver.Fody\FlexVerse.PropertyWeaver.Fody.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <PropertyGroup>
+    <WeaverConfiguration>
+      <Weavers>
+        <FlexVerse.PropertyWeaver />
+      </Weavers>
+    </WeaverConfiguration>
+  </PropertyGroup>
+  <Target Name="InjectLocalWeaverPath" BeforeTargets="FodyTarget">
+    <Message Text="Using Local Weaver DLL for $(AssemblyName)" Importance="High" />
+    <ItemGroup>
+      <WeaverFiles Include="$(MSBuildThisFileDirectory)..\FlexVerse.PropertyWeaver.Fody\bin\$(Configuration)\netstandard2.0\FlexVerse.PropertyWeaver.Fody.dll" />
+    </ItemGroup>
+  </Target>
+</Project>

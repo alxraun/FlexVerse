@@ -1,0 +1,51 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-WIDGET>
+  <Purpose>Base declarative Widget with flat Behavior-backed Props, lifecycle and input/render hooks, layout geometry and native IMGUI child-context hooks.</Purpose>
+  <Scope>
+    <SCP-IN-001>Behavior-backed Widget Props for children, Flexbox dimensions/margins/padding/borders, transforms, Overflow and ZIndex.</SCP-IN-001>
+    <SCP-IN-002>Lifecycle hooks, OnGUI and paired native child-context hooks with explicit viewport input and ChildrenGuiSpace output.</SCP-IN-002>
+    <SCP-IN-003>Self transforms Translate, Scale, Rotate and TransformOrigin; independent GetChildrenTransform for child-space transforms.</SCP-IN-003>
+    <SCP-IN-004>WidgetList, ImplicitKey and GetProperty(key) for generated Refs.</SCP-IN-004>
+    <SCP-OUT-001>Instance reconciliation, layout calculation, render traversal and pointer targeting are external responsibilities; the base Widget provides declarations and hooks.</SCP-OUT-001>
+    <SCP-OUT-002>Published geometry and clipping queries are owned by M-WIDGET-GEOMETRY, M-TRANSFORM-SERVICE and M-CLIP-SERVICE.</SCP-OUT-002>
+    <SCP-OUT-003>Generated property setters/slots — owned by M-WIDGET-EMITTER.</SCP-OUT-003>
+  </Scope>
+  <Requirements>
+    <REQ-001>Layout and visual properties are flat [Prop] Behavior slots; reserved base layout names update Flexbox through generated emitters without an independent Style category.</REQ-001>
+    <REQ-002>OnGUI receives the engine-supplied calculated layout rectangle; it does not calculate layout or render children itself.</REQ-002>
+    <REQ-003>GetProperty(string key) returns Refs[key] as IPropertyRef or null, with no per-call reflection or allocation.</REQ-003>
+    <REQ-004>WidgetRenderer owns GUI.matrix and render orchestration; Widget declares no-op child-context hooks and stores no transient renderer state.</REQ-004>
+    <REQ-005>WidgetRenderer supplies standard padding-box clipping unless the native context returned by a concrete widget already clips children; the renderer closes its clip before calling EndChildrenGUI.</REQ-005>
+    <REQ-006>Widget declares self-transform Props; WidgetGeometryBuilder computes their matrices without affecting Flexbox layout.</REQ-006>
+    <REQ-007>ZIndex is local to siblings; negative values and stable equal-index ties do not mutate the source Children list.</REQ-007>
+  </Requirements>
+  <Contract>
+    <Inputs>
+      <IN-001>calculatedRect: Rect from WidgetRenderer.</IN-001>
+      <IN-002>FlexEvent via mouse, keyboard and scroll hooks.</IN-002>
+      <IN-003>Calculated viewport in the incoming GUI coordinate space, passed explicitly to BeginChildrenGUI.</IN-003>
+    </Inputs>
+    <Outputs>
+      <OUT-001>Widget definition tree from BuildRenderTree and native IMGUI drawing within host rect.</OUT-001>
+      <OUT-002>ChildrenGuiSpace reports native origin, applied child transform and child clipping; GetChildrenTransform supplies the content transform.</OUT-002>
+    </Outputs>
+    <SideEffects>
+      <EFF-001>Widget hooks can modify instance State, issue draw calls and open/close native IMGUI scopes.</EFF-001>
+    </SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `Widget.Children` : `Behavior<WidgetList>`
+* `Widget.{Direction|FlexDirection|AlignItems|AlignSelf|AlignContent|JustifyContent|FlexWrap|Overflow|PositionType|Display}` : `Behavior<T>`
+* `Widget.{Width|Height|MinWidth|MinHeight|MaxWidth|MaxHeight|MarginAll|PaddingAll|BorderAll|PositionLeft}` : `Behavior<Length>`
+* `Widget.{ZIndex|Translate|Scale|Rotate|TransformOrigin}` : `Behavior<T>`
+* `Widget.{Translate|Scale|Rotate|TransformOrigin}` + `Widget.GetChildrenMatrix` -> `WidgetGeometryBuilder.Refresh`
+* `WidgetRenderer.RenderWithChildren` -> `Widget.OnGUI` -> `Widget.BeginChildrenGUI` -> `Widget.EndChildrenGUI`
+* `Widget.BeginChildrenGUI` -> `ChildrenGuiSpace`
+* `WidgetRenderer.RenderWithChildren` -> `GUI.BeginGroup` + `GUI.EndGroup`
+* `Widget.{OnMouseDown|OnMouseUp|OnMouseDrag|OnMouseMove|OnMouseEnter|OnMouseLeave|OnScrollWheel|OnKeyDown|OnKeyUp}` -> `FlexEvent`
+* `Widget.GetProperty(key)` -> `Refs[key]` -> `IPropertyRef`
+* `WidgetList` + `ImplicitKey` -> `WidgetTree`
+]]>
+  </Codemap>
+</M-WIDGET>

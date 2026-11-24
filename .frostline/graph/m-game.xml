@@ -1,0 +1,29 @@
+<!-- parents: @.frostline/graph/p-flexverse-tooling.xml -->
+<M-GAME>
+  <Purpose>The game domain (the game section of Scripts/_lib.py, image definition inline): local Steam discovery, steamcmd CI provisioning, the runtime container image, and BOTH container runs through ONE launch mechanism (plain docker run).</Purpose>
+
+  <Scope>
+    <SCP-IN-001>Scripts/_lib.py (game section): docker coordinates (GAME_IMAGE, STEAMCMD_IMAGE, RIMWORLD_APP_ID), appdata, find_installation, SOURCE_ADAPTERS (local|ci registry), stage_local/stage_ci adapters, provenance marker + last_info resume, the inline _DOCKERFILE + _RUN_HEADLESS, build_image + image_fingerprint, run_test, run_play.</SCP-IN-001>
+    <SCP-OUT-001>Credential storage: adapters read environment variables, never persist credentials.</SCP-OUT-001>
+    <SCP-OUT-002>Verdict derivation — owned by M-RUNS.</SCP-OUT-001>
+  </Scope>
+
+  <Requirements>
+    <REQ-001>Both adapters produce the SAME shared artifact .cache/game/RimWorld plus a typed GameInfo; downstream never knows which adapter ran.</REQ-001>
+    <REQ-002>The local adapter involves no credentials by design; CI reads STEAM_CONFIG_VDF_B64+STEAM_USERNAME (preferred) or STEAM_USER/STEAM_PASSWORD from the environment only, bootstrapping steamcmd self-update before planting config.vdf.</REQ-002>
+    <REQ-003>The image never contains game or mods; everything is mounted per run. The shared install is a copy of the host game minus the DLC Data folders — runs are physically DLC-free (ModLister sees no installed expansions at all); the provenance marker (layout version + directory + mtime) decides skip vs re-copy.</REQ-003>
+    <REQ-004>Test and play runs use the same docker run mechanism and mounts (game ro-parent, staging Mods, unity3d config, evidence dir); play auto-detects Wayland or X11 and fails loudly without a GUI socket.</REQ-004>
+  </Requirements>
+
+  <Codemap>
+<![CDATA[
+* `find_installation` -> steam roots + libraryfolders.vdf ; `FLEXVERSE_GAME_DIR` override
+* `SOURCE_ADAPTERS{local | ci}` : the only game-source seam registry (PRIN-006)
+* `stage_local` => `_install_from` (host copy - `DLC_DATA_DIRS`, marker layout + skip) ; `stage_ci(branch)` => steamcmd
+* both => `GameInfo` + provenance marker ; `last_info()` <= marker => cached resume
+* `appdata(run)` => `staging/{run}/unity3d/.../Config` : the only Unity config path
+* `build_image` <= inline `_DOCKERFILE` + `_RUN_HEADLESS` (game-free, derived from steam-game-image-action) ; `image_fingerprint` <= `doc_digest` of both ; build context => `.cache/buildx/image-context`
+* `run_test(plan)` == `run_play(plan)` : one `_mounts` + docker run, entrypoint differs only
+* compose.yaml : removed — no second launch mechanism]]>
+  </Codemap>
+</M-GAME>

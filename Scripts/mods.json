@@ -1,0 +1,46 @@
+{
+  "$comment": "Registry of known mods: source channel, pins, modDir, optional per-mod features. 'base' = the harness composition; 'playWith' = extra mods enabled by Scripts/play. Test extras attach via test --with (that run diffs against runs/base).",
+  "mods": {
+    "brrainz.harmony": {
+      "source": "workshop",
+      "publishedFileId": 2009463077,
+      "modDir": "Harmony"
+    },
+    "RimWorks.RimLogging": {
+      "source": "github",
+      "repo": "RimWorks/rimworld-logging-framework",
+      "tag": "v2.29.2",
+      "asset": "RimLogging-2.29.2.zip",
+      "sha256": "8053c944f2b589e1151bd8f7e53d564f5bac1c32e2b84ac80c75a8b6861d4e3b",
+      "modDir": "RimLogging"
+    },
+    "rimworks.pickle": {
+      "source": "github",
+      "repo": "RimWorks/Rimworld-Pickle",
+      "tag": "v4.9.1",
+      "asset": "Pickle-4.9.1.zip",
+      "sha256": "8c5ba4c17fbbd2a953ef3ce2661919d29d46f757d7cc3bfc14b0d1f096b7610b",
+      "modDir": "Pickle"
+    },
+    "flexverse.framework": {
+      "source": "workspace",
+      "modDir": "FlexVerse"
+    },
+    "flexverse.tools": {
+      "source": "workspace",
+      "modDir": "FlexTools"
+    },
+    "flexverse.test": {
+      "source": "workspace",
+      "modDir": "FlexVerse.Test"
+    }
+  },
+  "playWith": [],
+  "base": [
+    "brrainz.harmony",
+    "RimWorks.RimLogging",
+    "rimworks.pickle",
+    "flexverse.framework",
+    "flexverse.test"
+  ]
+}

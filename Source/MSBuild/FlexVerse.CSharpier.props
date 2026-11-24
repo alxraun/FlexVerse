@@ -1,0 +1,28 @@
+<!-- parents: @.frostline/graph/m-msbuild.xml -->
+<Project>
+  <!-- CSharpier: Debug build does not touch sources; Release build formats
+       them (check disabled so it rewrites instead of erroring). Package API:
+       CSharpier_Bypass / CSharpier_Check. Projects target net48 /
+       netstandard2.0, which would default the tool to net8.0; pinned to
+       net10.0 to match the installed SDK runtime (older CSharpier.MSBuild
+       builds require the ASP.NET Core 9.0 runtime, which is not present).
+       PrivateAssets keeps the package out of consumers' dependency graphs. -->
+  <PropertyGroup>
+    <CSharpier_FrameworkVersion>net10.0</CSharpier_FrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <CSharpier_Bypass>true</CSharpier_Bypass>
+    <CSharpier_Check>false</CSharpier_Check>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' != 'Debug'">
+    <CSharpier_Bypass>false</CSharpier_Bypass>
+    <CSharpier_Check>false</CSharpier_Check>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference
+      Include="CSharpier.MSBuild"
+      Version="1.3.0"
+      PrivateAssets="all"
+    />
+  </ItemGroup>
+</Project>

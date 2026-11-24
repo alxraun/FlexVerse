@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Runtime-only shim of UnityEngine.CoreModule for the core xunit suite
+    (V-M-UI-FACADE / V-M-ENGINE-REGISTRY). FlexVerse.dll is compiled against
+    the Krafs.Rimworld.Ref *reference* assemblies, whose method bodies throw;
+    the core tests execute FlexVerse.dll under .NET 10, so the small surface
+    the WidgetEngine frame pipeline JIT-touches is reproduced here with
+    inert implementations. Never referenced for compilation by the test
+    project (compile identity still comes from Krafs.Rimworld.Ref).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>UnityEngine.CoreModule</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <RootNamespace>UnityEngine</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
+  </PropertyGroup>
+</Project>

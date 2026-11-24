@@ -1,0 +1,26 @@
+<!-- parents: @.frostline/graph/ss-widget-runtime.xml -->
+<M-WIDGET-GEOMETRY>
+  <Purpose>Build and publish one geometry snapshot consumed by rendering, coordinate conversion, clipping and pointer targeting.</Purpose>
+  <Scope>
+    <SCP-IN-001>WidgetGeometryBuilder, WidgetGeometrySnapshot and WidgetGeometry entries.</SCP-IN-001>
+    <SCP-OUT-001>Flexbox calculation and IMGUI execution remain outside this module.</SCP-OUT-001>
+  </Scope>
+  <Requirements>
+    <REQ-001>Refresh builds entries from layout rectangles, local padding boxes and current widget transforms, Overflow and stable sibling ZIndex order before publishing them together.</REQ-001>
+    <REQ-002>Each entry retains parent, paint children, layout rect, self/child/world/inverse matrices, invertibility and local child clip.</REQ-002>
+    <REQ-003>Readers observe published values until the next refresh; entries from previous publications remain unchanged.</REQ-003>
+    <REQ-004>Native child-space changes request a full refresh; selective invalidation and viewport culling are separate concerns.</REQ-004>
+  </Requirements>
+  <Contract>
+    <Inputs><IN-001>WidgetTree and calculated layout/padding-box dictionaries.</IN-001></Inputs>
+    <Outputs><OUT-001>Published read-only geometry for the live tree.</OUT-001></Outputs>
+    <SideEffects><EFF-001>Replaces the engine snapshot after successful capture.</EFF-001></SideEffects>
+  </Contract>
+  <Codemap>
+<![CDATA[
+* `WidgetGeometryBuilder.Refresh` -> `WidgetTree.GetChildrenInPaintOrder` + `Widget.{Translate|Scale|Rotate|TransformOrigin}` + `Widget.GetChildrenMatrix` -> `WidgetGeometrySnapshot.Publish`
+* `WidgetGeometrySnapshot.TryGet` -> `WidgetGeometry`
+* `WidgetRenderer` + `WidgetHitTester` + `TransformService` + `ClipService` -> `WidgetGeometrySnapshot`
+]]>
+  </Codemap>
+</M-WIDGET-GEOMETRY>
